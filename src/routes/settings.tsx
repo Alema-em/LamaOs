@@ -1,0 +1,190 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useRef, useState } from "react";
+import { useGame, type DashboardPrefs } from "@/hooks/use-game";
+import { PageHeader, Section, Panel } from "@/components/ui-kit";
+import { Download, Upload, RotateCcw, Sun, Moon } from "lucide-react";
+
+export const Route = createFileRoute("/settings")({
+  head: () => ({ meta: [{ title: "Settings — LamaOS" }] }),
+  component: SettingsPage,
+});
+
+function SettingsPage() {
+  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset } = useGame();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+
+  function download() {
+    const data = exportJson();
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lamaos-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        importJson(String(reader.result));
+        setImportMsg("Restored successfully.");
+      } catch {
+        setImportMsg("That file didn't look like a LamaOS backup.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  const sectionToggles: { key: keyof DashboardPrefs; label: string }[] = [
+    { key: "showPinnedGoals", label: "Pinned goals" },
+    { key: "showJourney", label: "Journey ring & breakdown" },
+    { key: "showWeightTrend", label: "Weight trend" },
+    { key: "showAchievements", label: "Recent achievements" },
+    { key: "showWorkspaces", label: "Workspaces" },
+  ];
+
+  return (
+    <div>
+      <PageHeader
+        eyebrow="Operating system"
+        title="Settings"
+        subtitle="Make LamaOS yours. Everything is stored locally on this device."
+      />
+
+      <Section className="grid gap-6 lg:grid-cols-2">
+        <Panel title="Profile" hint="You">
+          <div className="space-y-4">
+            <Field label="Name">
+              <input
+                value={state.name}
+                onChange={(e) => setProfile({ name: e.target.value })}
+                maxLength={40}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+            </Field>
+            <Field label="North star">
+              <input
+                value={state.mainGoal}
+                onChange={(e) => setProfile({ mainGoal: e.target.value })}
+                maxLength={140}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+            </Field>
+            <Field label="This week's focus">
+              <input
+                value={state.focus}
+                onChange={(e) => setProfile({ focus: e.target.value })}
+                maxLength={160}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+            </Field>
+            <Field label="Weekly target (actions)">
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={state.weeklyTarget}
+                onChange={(e) =>
+                  setProfile({ weeklyTarget: Math.max(1, Math.min(50, +e.target.value || 1)) })
+                }
+                className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+            </Field>
+          </div>
+        </Panel>
+
+        <Panel title="Appearance" hint="Theme">
+          <button
+            onClick={toggleTheme}
+            className="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-sm hover:bg-foreground/[0.04]"
+          >
+            <span className="flex items-center gap-2">
+              {state.theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              Switch to {state.theme === "dark" ? "light" : "dark"} mode
+            </span>
+            <span className="text-xs text-muted-foreground capitalize">
+              Currently {state.theme}
+            </span>
+          </button>
+        </Panel>
+      </Section>
+
+      <Section>
+        <Panel title="Dashboard sections" hint="Customize home">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Choose what appears when you open LamaOS.
+          </p>
+          <div className="grid gap-2 md:grid-cols-2">
+            {sectionToggles.map((t) => (
+              <label
+                key={t.key}
+                className="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm"
+              >
+                <span>{t.label}</span>
+                <input
+                  type="checkbox"
+                  checked={Boolean(state.prefs[t.key])}
+                  onChange={(e) =>
+                    setPrefs({ [t.key]: e.target.checked } as Partial<DashboardPrefs>)
+                  }
+                  className="h-4 w-4 accent-foreground"
+                />
+              </label>
+            ))}
+          </div>
+        </Panel>
+      </Section>
+
+      <Section className="pb-16">
+        <Panel title="Data" hint="Local only">
+          <div className="grid gap-3 md:grid-cols-3">
+            <button
+              onClick={download}
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm hover:bg-foreground hover:text-background"
+            >
+              <Download className="h-4 w-4" /> Export JSON
+            </button>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm hover:bg-foreground hover:text-background"
+            >
+              <Upload className="h-4 w-4" /> Import JSON
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+                e.target.value = "";
+              }}
+            />
+            <button
+              onClick={() => {
+                if (confirm("Reset LamaOS to first-time state? This cannot be undone.")) reset();
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-destructive/40 px-4 py-2.5 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <RotateCcw className="h-4 w-4" /> Reset everything
+            </button>
+          </div>
+          {importMsg && <div className="mt-3 text-xs text-muted-foreground">{importMsg}</div>}
+        </Panel>
+      </Section>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs text-muted-foreground">{label}</label>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
