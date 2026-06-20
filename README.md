@@ -2,16 +2,16 @@
 
 **A personal life operating system for goals, fitness, DSA, projects, and daily consistency.**
 
-Lama OS is a private web app for tracking the areas that matter day to day: fitness habits, DSA practice, projects, goals, internships, journaling, and a unified dashboard. Your data stays tied to your account and syncs through Supabase.
+Lama OS is a private web app for tracking the areas that matter day to day: fitness habits, DSA practice, projects, goals, internships, journaling and a unified dashboard. Your data stays tied to your account and syncs through Supabase.
 
 ## Features
 
-- **Dashboard** — Today’s focus, streaks, progress breakdown, quick logging, and pinned goals/projects
-- **Fitness** — Weight trends, daily checklist (steps, calories, protein, water, sleep), step history rings, and habit scores
-- **DSA** — Problem log, topic coverage, activity grid, goal progress, and practice streak
-- **Projects & goals** — Tasks, milestones, deadlines, and mission-style planning
-- **Career & internships** — Applications, skills, and career checklist
-- **Journal & history** — Entries, timelines, and weekly snapshots
+- **Dashboard** — Today’s focus, streaks, progress breakdown, quick logging and pinned goals/projects
+- **Fitness** — Weight trends, daily checklist (steps, calories, protein, water, sleep), step history rings and habit scores
+- **DSA** — Problem log, topic coverage, activity grid, goal progress and practice streak
+- **Projects & goals** — Tasks, milestones, deadlines and mission-style planning
+- **Career & internships** — Applications, skills and career checklist
+- **Journal & history** — Entries, timelines and weekly snapshots
 - **Auth** — Email/password and Google sign-in via Supabase
 
 ## Tech stack
@@ -84,4 +84,4 @@ Lama OS is configured for **Vercel** with the official TanStack Start + Nitro se
 
 ## License
 
-Private project — all rights reserved unless you choose to open-source it.
+Private project 
