@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useGame } from "@/hooks/use-game";
 import { DSA_TOPICS, dsaStreak, dsaTopicCoverageRows } from "@/lib/dsa-topics";
+import { clampPercent, safePercentage } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import { Code2, Trash2 } from "lucide-react";
 
@@ -16,7 +17,7 @@ const TOPICS = DSA_TOPICS;
 function Dsa() {
   const { state, logProblem, deleteProblem, setDsaGoal } = useGame();
   const ps = state.dsa.problems;
-  const pct = state.dsa.goal > 0 ? Math.min(100, (ps.length / state.dsa.goal) * 100) : 0;
+  const pct = state.dsa.goal > 0 ? clampPercent((ps.length / state.dsa.goal) * 100) : 0;
   const streakDays = useMemo(() => dsaStreak(ps), [ps]);
 
   const easy = ps.filter((p) => p.difficulty === "easy").length;
@@ -266,7 +267,7 @@ function Dsa() {
                     <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-foreground/80 transition-[width] duration-300 ease-out"
-                        style={{ width: `${(count / max) * 100}%` }}
+                        style={{ width: `${safePercentage(count, max)}%` }}
                       />
                     </div>
                   </div>

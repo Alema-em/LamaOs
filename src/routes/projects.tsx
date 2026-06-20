@@ -10,6 +10,7 @@ import {
   type Priority,
 } from "@/hooks/use-game";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
+import { clampPercent } from "@/lib/progress";
 import {
   Plus,
   Pin,
@@ -51,7 +52,7 @@ function ProjectsPage() {
   const totalItems = totalTasks + totalMs;
   const doneItems = doneTasks + doneMs;
   const hasData = totalItems > 0;
-  const completionPct = hasData ? Math.round((doneItems / totalItems) * 100) : 0;
+  const completionPct = hasData ? clampPercent((doneItems / totalItems) * 100) : 0;
   const openTasks = totalTasks - doneTasks;
 
   return (
@@ -235,11 +236,9 @@ function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void
       </div>
 
       <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-muted">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.9 }}
-          className="h-full rounded-full bg-foreground/80"
+        <div
+          className="h-full rounded-full bg-foreground/80 transition-[width] duration-300 ease-out"
+          style={{ width: `${clampPercent(pct)}%` }}
         />
       </div>
       <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">

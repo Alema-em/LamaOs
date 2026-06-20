@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useGame, goalProgress, type Goal } from "@/hooks/use-game";
+import { clampPercent } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import { CheckCircle2, AlertCircle, Calendar, Target, Plus } from "lucide-react";
 
@@ -155,13 +156,11 @@ function MissionControl() {
                   </div>
 
                   <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${g.progress}%` }}
-                      transition={{ duration: 0.9 }}
-                      className={`h-full rounded-full ${
+                    <div
+                      className={`h-full rounded-full transition-[width] duration-300 ease-out ${
                         g.onTrack === false ? "bg-destructive/70" : "bg-foreground/80"
                       }`}
+                      style={{ width: `${clampPercent(g.progress)}%` }}
                     />
                   </div>
                   <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">

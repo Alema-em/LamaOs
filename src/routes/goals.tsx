@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGame, goalProgress, type Goal } from "@/hooks/use-game";
+import { clampPercent } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import {
   Plus,
@@ -267,11 +268,9 @@ function GoalCard({
           <span>{Math.round(pct)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.9 }}
-            className="h-full rounded-full bg-foreground/80"
+          <div
+            className="h-full rounded-full bg-foreground/80 transition-[width] duration-300 ease-out"
+            style={{ width: `${clampPercent(pct)}%` }}
           />
         </div>
         {g.milestones.length === 0 && (

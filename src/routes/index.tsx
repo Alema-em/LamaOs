@@ -4,6 +4,7 @@ import { useState, useMemo, type ElementType, type ReactNode } from "react";
 import { useGame, goalProgress, projectProgress, dailyScore } from "@/hooks/use-game";
 import { DSA_TOPICS } from "@/lib/dsa-topics";
 import { Mochi } from "@/components/Mochi";
+import { clampPercent, weightJourneyPercent } from "@/lib/progress";
 import { Panel, Section, Stat } from "@/components/ui-kit";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -51,22 +52,15 @@ function Home() {
   } = useGame();
 
   const needed = xpForLevel(state.level);
-  const xpPct = Math.min(100, (state.xp / needed) * 100);
+  const xpPct = clampPercent((state.xp / needed) * 100);
 
   const dsaPct =
-    state.dsa.goal > 0 ? Math.min(100, (state.dsa.problems.length / state.dsa.goal) * 100) : 0;
-  const weightProgress =
-    state.fitness.start && state.fitness.goal && state.fitness.start !== state.fitness.goal
-      ? Math.max(
-          0,
-          Math.min(
-            100,
-            ((state.fitness.start - state.fitness.current) /
-              (state.fitness.start - state.fitness.goal)) *
-              100,
-          ),
-        )
-      : 0;
+    state.dsa.goal > 0 ? clampPercent((state.dsa.problems.length / state.dsa.goal) * 100) : 0;
+  const weightProgress = weightJourneyPercent(
+    state.fitness.start,
+    state.fitness.current,
+    state.fitness.goal,
+  );
   const activeGoals = state.goals.filter((g) => !g.archived);
   const goalAvg = activeGoals.length
     ? activeGoals.reduce((a, g) => a + goalProgress(g), 0) / activeGoals.length
@@ -531,16 +525,12 @@ function buildToday(state: ReturnType<typeof useGame>["state"]) {
     );
 
   // Suggested focus area: pick lowest-progress active area
-  const dsaPct = state.dsa.goal > 0 ? (state.dsa.problems.length / state.dsa.goal) * 100 : 100;
+  const dsaPct =
+    state.dsa.goal > 0 ? clampPercent((state.dsa.problems.length / state.dsa.goal) * 100) : 100;
   const projAvg = state.projects.length
     ? state.projects.reduce((a, p) => a + projectProgress(p), 0) / state.projects.length
     : 100;
-  const wp =
-    state.fitness.start && state.fitness.goal && state.fitness.start !== state.fitness.goal
-      ? ((state.fitness.start - state.fitness.current) /
-          (state.fitness.start - state.fitness.goal)) *
-        100
-      : 100;
+  const wp = weightJourneyPercent(state.fitness.start, state.fitness.current, state.fitness.goal);
   const choices: { name: string; pct: number; to: string }[] = [
     { name: "DSA practice", pct: dsaPct, to: "/dsa" },
     { name: "Project momentum", pct: projAvg, to: "/projects" },
@@ -585,7 +575,7 @@ function SmartToday({ today, score }: { today: ReturnType<typeof buildToday>; sc
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-foreground/80 transition-[width] duration-300 ease-out"
-                style={{ width: `${score}%` }}
+                style={{ width: `${clampPercent(score)}%` }}
               />
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
@@ -1042,7 +1032,7 @@ function EmptyInline({ body }: { body: string }) {
 }
 
 function ProgressBar({ pct }: { pct: number }) {
-  const width = Math.max(0, Math.min(100, pct));
+  const width = clampPercent(pct);
   return (
     <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-muted">
       <div
@@ -1067,7 +1057,7 @@ function ProgressRow({
   const Comp: ElementType<{ to?: string; className?: string; children?: ReactNode }> = to
     ? Link
     : "div";
-  const width = Math.max(2, Math.min(100, value));
+  const width = clampPercent(value);
   return (
     <Comp to={to} className={`block ${to ? "group" : ""}`}>
       <div className="mb-2 flex items-baseline justify-between">
@@ -1087,7 +1077,7 @@ function ProgressRow({
 function Ring({ value }: { value: number }) {
   const r = 70,
     c = 2 * Math.PI * r;
-  const dash = c * (Math.max(0, Math.min(100, value)) / 100);
+  const dash = c * (clampPercent(value) / 100);
   return (
     <svg width="180" height="180" viewBox="0 0 180 180" className="-rotate-90">
       <circle cx="90" cy="90" r={r} stroke="var(--muted)" strokeWidth="6" fill="none" />

@@ -21,6 +21,7 @@ import {
   type DailyLog,
 } from "@/hooks/use-game";
 import { forecastWeight, projectGoalDate } from "@/lib/forecast";
+import { clampPercent, hasWeightSetup, weightJourneyMetrics } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import {
   Plus,
@@ -82,7 +83,7 @@ function Fitness() {
           ? "Saved"
           : null;
 
-  const needsSetup = f.history.length === 0 && (!f.start || !f.goal);
+  const weightSetupReady = hasWeightSetup(f.start, f.current, f.goal);
 
   const year = new Date().getFullYear();
   const aug31 = `${year}-08-31`;
@@ -101,14 +102,15 @@ function Fitness() {
   const [workoutType, setType] = useState("Strength");
   const [minutes, setMin] = useState(45);
 
-  if (needsSetup) {
-    return <SetupFitness onSave={setFitnessTargets} />;
+  if (!weightSetupReady) {
+    return <SetupFitness fitness={f} onSave={setFitnessTargets} />;
   }
 
-  const lost = +(f.start - f.current).toFixed(1);
-  const remaining = +(f.current - f.goal).toFixed(1);
-  const denom = f.start - f.goal;
-  const pct = denom ? Math.max(0, Math.min(100, ((f.start - f.current) / denom) * 100)) : 0;
+  const { lost, remaining, journeyPct, remainingPct } = weightJourneyMetrics(
+    f.start,
+    f.current,
+    f.goal,
+  );
   const data = f.history.map((h) => ({ date: h.date.slice(5), weight: h.weight }));
 
   // Required pace vs current pace
@@ -144,11 +146,27 @@ function Fitness() {
       <Section className="grid grid-cols-2 gap-x-10 gap-y-8 border-b border-border md:grid-cols-4">
         <Stat label="Current" value={`${f.current}kg`} />
         <Stat label="Goal" value={`${f.goal}kg`} sub={`Started at ${f.start}kg`} />
-        <Stat label="Lost" value={`${lost}kg`} accent />
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            Lost
+          </div>
+          <div className="mt-2 font-display text-3xl tracking-tight">{lost}kg</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {journeyPct === 0 && lost === 0
+              ? "Log a lower weigh-in to begin"
+              : `${Math.round(journeyPct)}% of journey`}
+          </div>
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-accent/80 transition-[width] duration-300 ease-out"
+              style={{ width: `${journeyPct}%` }}
+            />
+          </div>
+        </div>
         <Stat
           label="Remaining"
-          value={`${Math.max(0, remaining)}kg`}
-          sub={`${Math.round(pct)}% of journey`}
+          value={`${remaining}kg`}
+          sub={f.start !== f.goal ? `${Math.round(remainingPct)}% to go` : undefined}
         />
       </Section>
 
@@ -610,11 +628,13 @@ function DailyChecklist({
         const hit = isCalories
           ? calorieInSuccessBand(raw, targets.calories)
           : raw !== undefined && raw >= it.target;
-        const barPct = isCalories
-          ? calorieBarWidth(raw, targets.calories)
-          : it.target
-            ? Math.min(100, (v / it.target) * 100)
-            : 0;
+        const barPct = clampPercent(
+          isCalories
+            ? calorieBarWidth(raw, targets.calories)
+            : it.target
+              ? (v / it.target) * 100
+              : 0,
+        );
         const statusText = isCalories ? calorieStatusText(raw, targets.calories) : null;
         const Icon = it.icon;
         const cardClass = calOver
@@ -695,7 +715,7 @@ function StepHistoryCalendar({
       const log = byDate.get(key);
       const steps = typeof log?.steps === "number" ? log.steps : undefined;
       const pct =
-        steps !== undefined && stepTarget > 0 ? Math.min(100, (steps / stepTarget) * 100) : 0;
+        steps !== undefined && stepTarget > 0 ? clampPercent((steps / stepTarget) * 100) : 0;
       const complete = steps !== undefined && stepTarget > 0 && steps >= stepTarget;
       const hasData = steps !== undefined;
       return { key, steps, pct, complete, hasData };
@@ -745,7 +765,7 @@ function MiniStepRing({
 }) {
   const r = 10;
   const c = 2 * Math.PI * r;
-  const dash = c * (Math.max(0, Math.min(100, pct)) / 100);
+  const dash = c * (clampPercent(pct) / 100);
   const stroke = !hasData
     ? "var(--muted)"
     : complete
@@ -772,7 +792,7 @@ function MiniStepRing({
 }
 
 function ScoreRow({ label, value, sub }: { label: string; value: number; sub: string }) {
-  const width = Math.max(0, Math.min(100, value));
+  const width = clampPercent(value);
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -829,20 +849,21 @@ function TargetsEditor({
 // Setup
 // ============================================
 function SetupFitness({
+  fitness,
   onSave,
 }: {
+  fitness: { start: number; current: number; goal: number };
   onSave: (start: number, current: number, goal: number) => void;
 }) {
-  // Pre-fill user's stated profile (78 → 65) without creating fake history.
-  const [start, setStart] = useState<number | "">(78);
-  const [current, setCurrent] = useState<number | "">(78);
-  const [goal, setGoal] = useState<number | "">(65);
+  const [start, setStart] = useState<number | "">(fitness.start > 0 ? fitness.start : "");
+  const [current, setCurrent] = useState<number | "">(fitness.current > 0 ? fitness.current : "");
+  const [goal, setGoal] = useState<number | "">(fitness.goal > 0 ? fitness.goal : "");
   return (
     <div>
       <PageHeader
         eyebrow="Wellbeing"
         title="Fitness"
-        subtitle="Set your starting point, where you are now, and where you'd like to be."
+        subtitle="Set your starting point to begin tracking your journey."
       />
       <Section>
         <div className="max-w-xl rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -853,14 +874,19 @@ function SetupFitness({
             <div>
               <div className="font-display text-xl">Set your targets</div>
               <div className="text-xs text-muted-foreground">
-                Defaults match a sustainable fat-loss plan. Edit anytime.
+                Enter your weights in kg. You can change these anytime.
               </div>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            <Field label="Start (kg)" value={start} onChange={setStart} />
-            <Field label="Current (kg)" value={current} onChange={setCurrent} />
-            <Field label="Goal (kg)" value={goal} onChange={setGoal} />
+            <Field label="Start (kg)" value={start} onChange={setStart} placeholder="e.g. 75" />
+            <Field
+              label="Current (kg)"
+              value={current}
+              onChange={setCurrent}
+              placeholder="e.g. 72"
+            />
+            <Field label="Goal (kg)" value={goal} onChange={setGoal} placeholder="e.g. 65" />
           </div>
           <button
             disabled={
@@ -888,10 +914,12 @@ function Field({
   label,
   value,
   onChange,
+  placeholder,
 }: {
   label: string;
   value: number | "";
   onChange: (v: number | "") => void;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -900,6 +928,7 @@ function Field({
         type="number"
         step="0.1"
         value={value}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value === "" ? "" : +e.target.value)}
         className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
       />

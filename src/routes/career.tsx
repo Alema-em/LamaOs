@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ElementType, type ReactNode } from "react";
-import { motion } from "framer-motion";
 import { useGame, projectProgress } from "@/hooks/use-game";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
+import { clampPercent } from "@/lib/progress";
 import { Plus, Check, Trash2, Lightbulb } from "lucide-react";
 
 export const Route = createFileRoute("/career")({
@@ -311,11 +311,9 @@ function ScoreRow({
         </div>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.9 }}
-          className="h-full rounded-full bg-foreground/80 group-hover:bg-accent"
+        <div
+          className="h-full rounded-full bg-foreground/80 transition-[width] duration-300 ease-out group-hover:bg-accent"
+          style={{ width: `${clampPercent(pct)}%` }}
         />
       </div>
     </Comp>
