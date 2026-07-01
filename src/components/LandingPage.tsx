@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -14,6 +14,7 @@ import {
   Target,
 } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
+import { isDemoConfigured, signInAsDemo } from "@/lib/demo-auth";
 import { Mochi } from "@/components/Mochi";
 import {
   DsaActivityPreview,
@@ -90,6 +91,8 @@ const PRODUCT_CARDS: {
 
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -97,6 +100,17 @@ export function LandingPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  async function tryDemo() {
+    if (!isDemoConfigured()) return;
+    setDemoBusy(true);
+    try {
+      await signInAsDemo();
+      navigate({ to: "/" });
+    } finally {
+      setDemoBusy(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -214,6 +228,17 @@ export function LandingPage() {
                   See the product
                 </a>
               </motion.div>
+
+              {isDemoConfigured() && (
+                <button
+                  type="button"
+                  disabled={demoBusy}
+                  onClick={() => void tryDemo()}
+                  className="mt-5 text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline disabled:opacity-50"
+                >
+                  {demoBusy ? "Opening demo…" : "Or try the demo account"}
+                </button>
+              )}
 
               <HeroScrollCue />
             </div>

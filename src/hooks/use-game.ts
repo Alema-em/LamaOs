@@ -11,6 +11,13 @@ import {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { clampPercent } from "@/lib/progress";
+import { isDemoEmail } from "@/lib/demo-auth";
+import {
+  createDemoState,
+  demoSeedNeedsRefresh,
+  isBareAccount,
+} from "@/lib/demo-state";
+import { ALL_MODULES_ON, type ModuleFlags, type OnboardingPreset } from "@/lib/modules";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
 
@@ -208,6 +215,16 @@ export interface DashboardPrefs {
   showToday: boolean;
   showMission: boolean;
   sectionOrder: string[];
+  modules: ModuleFlags;
+  /** Bumped when demo seed template changes — demo accounts auto-refresh. */
+  demoSeedVersion?: number;
+}
+
+export interface OnboardingPayload {
+  name: string;
+  mainGoal: string;
+  preset: OnboardingPreset;
+  modules: ModuleFlags;
 }
 
 export interface GameState {
@@ -283,7 +300,7 @@ function startOfWeek(d = new Date()) {
   return x.toISOString().slice(0, 10);
 }
 
-const DEFAULT_PREFS: DashboardPrefs = {
+export const DEFAULT_PREFS: DashboardPrefs = {
   showPinnedGoals: true,
   showJourney: true,
   showBreakdown: true,
@@ -301,6 +318,7 @@ const DEFAULT_PREFS: DashboardPrefs = {
     "achievements",
     "workspaces",
   ],
+  modules: { ...ALL_MODULES_ON },
 };
 
 export const EMPTY_STATE: GameState = {
@@ -437,7 +455,11 @@ function mergeState(saved: unknown): GameState {
     brandforge: { ...EMPTY_STATE.brandforge, ...(migrated.brandforge || {}) },
     axiomera: { ...EMPTY_STATE.axiomera, ...(migrated.axiomera || {}) },
     career: { ...DEFAULT_CAREER, ...(migrated.career || {}) },
-    prefs: { ...DEFAULT_PREFS, ...(migrated.prefs || {}) },
+    prefs: {
+      ...DEFAULT_PREFS,
+      ...(migrated.prefs || {}),
+      modules: { ...ALL_MODULES_ON, ...(migrated.prefs?.modules || {}) },
+    },
     projects: Array.isArray(migrated.projects) ? migrated.projects : [],
     weeklyReviews: Array.isArray(migrated.weeklyReviews) ? migrated.weeklyReviews : [],
     goalCategories: migrated.goalCategories?.length
@@ -491,11 +513,10 @@ function useGameStore() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadForUser(uid: string | null) {
+    async function loadForUser(uid: string | null, email: string | null) {
       if (cancelled) return;
       setUserId(uid);
       if (!uid) {
-        // Not signed in — keep empty state, mark hydrated so routes can render auth gate.
         skipNextSave.current = true;
         setState(EMPTY_STATE);
         setHydrated(true);
@@ -512,10 +533,13 @@ function useGameStore() {
         if (cancelled) return;
         if (error) throw error;
         skipNextSave.current = true;
-        const next =
+        let next =
           data?.state && typeof data.state === "object" && Object.keys(data.state).length > 0
             ? mergeState(data.state)
             : EMPTY_STATE;
+        if (isDemoEmail(email) && (isBareAccount(next) || demoSeedNeedsRefresh(next))) {
+          next = createDemoState();
+        }
         setState(next);
         setHydrated(true);
         setLastSaved(data?.updated_at ? new Date(data.updated_at).getTime() : null);
@@ -530,13 +554,12 @@ function useGameStore() {
 
     // Initial fetch
     supabase.auth.getSession().then(({ data }) => {
-      loadForUser(data.session?.user.id ?? null);
+      loadForUser(data.session?.user.id ?? null, data.session?.user.email ?? null);
     });
 
-    // React to sign-in / sign-out / token refresh
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "TOKEN_REFRESHED") return; // session same user, no reload
-      loadForUser(session?.user.id ?? null);
+      if (event === "TOKEN_REFRESHED") return;
+      loadForUser(session?.user.id ?? null, session?.user.email ?? null);
     });
 
     return () => {
@@ -1124,6 +1147,21 @@ function useGameStore() {
   }, []);
   const reset = useCallback(() => setState(EMPTY_STATE), []);
 
+  const completeOnboarding = useCallback((payload: OnboardingPayload) => {
+    setState((s) => ({
+      ...s,
+      name: payload.name,
+      mainGoal: payload.mainGoal,
+      focus: "Begin where you are.",
+      onboarded: true,
+      prefs: { ...s.prefs, modules: payload.modules },
+    }));
+  }, []);
+
+  const resetDemoState = useCallback(() => {
+    setState(createDemoState());
+  }, []);
+
   return {
     state,
     hydrated,
@@ -1187,6 +1225,8 @@ function useGameStore() {
     exportJson,
     importJson,
     reset,
+    completeOnboarding,
+    resetDemoState,
     // legacy aliases used by older routes:
     toggleMilestone: (_mid: string) => {},
     addMilestone: (_t: string, _c: string) => {},

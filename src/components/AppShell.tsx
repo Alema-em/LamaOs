@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
 import { useGame, type SyncStatus } from "@/hooks/use-game";
+import { routeModule } from "@/lib/modules";
 import { Mochi } from "./Mochi";
 import { cn } from "@/lib/utils";
 
@@ -46,10 +47,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const navItems = NAV.filter((item) => {
+    const mod = routeModule(item.to);
+    if (!mod) return true;
+    return state.prefs.modules[mod];
+  });
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       <DesktopSidebar
         pathname={pathname}
+        navItems={navItems}
         name={state.name}
         theme={state.theme}
         streak={state.streak}
@@ -80,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <SidebarContents
                 pathname={pathname}
+                navItems={navItems}
                 name={state.name}
                 streak={state.streak}
                 theme={state.theme}
@@ -134,6 +143,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function DesktopSidebar({
   pathname,
+  navItems,
   name,
   theme,
   streak,
@@ -144,6 +154,7 @@ function DesktopSidebar({
   signOut,
 }: {
   pathname: string;
+  navItems: (typeof NAV)[number][];
   name: string;
   theme: "light" | "dark";
   streak: number;
@@ -157,6 +168,7 @@ function DesktopSidebar({
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card/40 md:flex">
       <SidebarContents
         pathname={pathname}
+        navItems={navItems}
         name={name}
         streak={streak}
         theme={theme}
@@ -172,6 +184,7 @@ function DesktopSidebar({
 
 function SidebarContents({
   pathname,
+  navItems,
   name,
   streak,
   theme,
@@ -183,6 +196,7 @@ function SidebarContents({
   onNavigate,
 }: {
   pathname: string;
+  navItems: (typeof NAV)[number][];
   name: string;
   streak: number;
   theme: "light" | "dark";
@@ -193,6 +207,14 @@ function SidebarContents({
   signOut: () => Promise<void>;
   onNavigate?: () => void;
 }) {
+  const todayItems = navItems.filter((i) => i.to === "/" || i.to === "/mission");
+  const workspaceItems = navItems.filter((i) =>
+    ["/fitness", "/dsa", "/internships", "/projects", "/career"].includes(i.to),
+  );
+  const visionItems = navItems.filter((i) =>
+    ["/goals", "/journal", "/history", "/achievements", "/settings"].includes(i.to),
+  );
+
   return (
     <>
       <div className="flex items-center justify-between gap-3 px-6 py-6">
@@ -210,18 +232,30 @@ function SidebarContents({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3">
-        <SectionLabel>Today</SectionLabel>
-        {NAV.slice(0, 2).map((i) => (
-          <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
-        ))}
-        <SectionLabel className="mt-4">Workspace</SectionLabel>
-        {NAV.slice(2, 7).map((i) => (
-          <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
-        ))}
-        <SectionLabel className="mt-4">Vision</SectionLabel>
-        {NAV.slice(7).map((i) => (
-          <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
-        ))}
+        {todayItems.length > 0 && (
+          <>
+            <SectionLabel>Today</SectionLabel>
+            {todayItems.map((i) => (
+              <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
+            ))}
+          </>
+        )}
+        {workspaceItems.length > 0 && (
+          <>
+            <SectionLabel className="mt-4">Workspace</SectionLabel>
+            {workspaceItems.map((i) => (
+              <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
+            ))}
+          </>
+        )}
+        {visionItems.length > 0 && (
+          <>
+            <SectionLabel className="mt-4">Vision</SectionLabel>
+            {visionItems.map((i) => (
+              <NavItem key={i.to} {...i} active={pathname === i.to} onNavigate={onNavigate} />
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="m-3 rounded-xl border border-border bg-background/50 p-3">

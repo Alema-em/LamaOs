@@ -13,6 +13,7 @@ import type { Session } from "@supabase/supabase-js";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { LandingPage } from "@/components/LandingPage";
 import { GameProvider } from "@/hooks/use-game";
 import { supabase } from "@/integrations/supabase/client";
@@ -201,9 +202,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <GameProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <AuthenticatedLayout />
       </GameProvider>
     </QueryClientProvider>
   );

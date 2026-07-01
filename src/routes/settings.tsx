@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame, type DashboardPrefs } from "@/hooks/use-game";
+import { isDemoEmail } from "@/lib/demo-auth";
+import { MODULE_META } from "@/lib/modules";
 import { PageHeader, Section, Panel } from "@/components/ui-kit";
-import { Download, Upload, RotateCcw, Sun, Moon } from "lucide-react";
+import { Download, Upload, RotateCcw, Sun, Moon, FlaskConical } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — LamaOS" }] }),
@@ -10,9 +13,17 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset } = useGame();
+  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset, resetDemoState } =
+    useGame();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [demoUser, setDemoUser] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setDemoUser(isDemoEmail(data.user?.email));
+    });
+  }, []);
 
   function download() {
     const data = exportJson();
@@ -51,7 +62,7 @@ function SettingsPage() {
       <PageHeader
         eyebrow="Operating system"
         title="Settings"
-        subtitle="Make LamaOS yours. Everything is stored locally on this device."
+        subtitle="Profile, modules, and data — synced to your account."
       />
 
       <Section className="grid gap-6 lg:grid-cols-2">
@@ -111,6 +122,53 @@ function SettingsPage() {
           </button>
         </Panel>
       </Section>
+
+      <Section>
+        <Panel title="Sidebar modules" hint="Navigation">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Turn modules on or off. Home, History, Achievements, and Settings always stay visible.
+          </p>
+          <div className="grid gap-2 md:grid-cols-2">
+            {MODULE_META.map((m) => (
+              <label
+                key={m.id}
+                className="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm"
+              >
+                <span>{m.label}</span>
+                <input
+                  type="checkbox"
+                  checked={state.prefs.modules[m.id]}
+                  onChange={(e) =>
+                    setPrefs({
+                      modules: { ...state.prefs.modules, [m.id]: e.target.checked },
+                    })
+                  }
+                  className="h-4 w-4 accent-foreground"
+                />
+              </label>
+            ))}
+          </div>
+        </Panel>
+      </Section>
+
+      {demoUser && (
+        <Section>
+          <Panel title="Demo account" hint="Preview">
+            <p className="mb-4 text-sm text-muted-foreground">
+              Reset sample data to the latest demo template — useful when testing new features.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm("Reset demo data to the latest sample state?")) resetDemoState();
+              }}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm hover:bg-foreground hover:text-background"
+            >
+              <FlaskConical className="h-4 w-4" /> Reset demo data
+            </button>
+          </Panel>
+        </Section>
+      )}
 
       <Section>
         <Panel title="Dashboard sections" hint="Customize home">

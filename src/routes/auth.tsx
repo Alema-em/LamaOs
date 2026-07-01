@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isDemoConfigured, signInAsDemo } from "@/lib/demo-auth";
 import { Mochi } from "@/components/Mochi";
 
 export const Route = createFileRoute("/auth")({
@@ -58,6 +59,23 @@ function AuthPage() {
       }
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDemo() {
+    if (!isDemoConfigured()) {
+      setErr("Demo account is not configured. Add VITE_DEMO_EMAIL and VITE_DEMO_PASSWORD to .env");
+      return;
+    }
+    setErr(null);
+    setMsg(null);
+    setBusy(true);
+    try {
+      await signInAsDemo();
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Could not open demo account.");
     } finally {
       setBusy(false);
     }
@@ -180,6 +198,16 @@ function AuthPage() {
               >
                 <GoogleIcon /> Continue with Google
               </button>
+              {isDemoConfigured() && mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => void handleDemo()}
+                  disabled={busy}
+                  className="mt-2 w-full rounded-md border border-dashed border-border px-4 py-2.5 text-sm text-muted-foreground transition hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                >
+                  Try demo account
+                </button>
+              )}
             </>
           )}
 

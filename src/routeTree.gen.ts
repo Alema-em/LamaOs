@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MissionRouteImport } from './routes/mission'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as InternshipsRouteImport } from './routes/internships'
@@ -39,6 +40,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MissionRoute = MissionRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/internships': typeof InternshipsRoute
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
+  '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/internships': typeof InternshipsRoute
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
+  '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/internships': typeof InternshipsRoute
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
+  '/onboarding': typeof OnboardingRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/internships'
     | '/journal'
     | '/mission'
+    | '/onboarding'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/internships'
     | '/journal'
     | '/mission'
+    | '/onboarding'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/internships'
     | '/journal'
     | '/mission'
+    | '/onboarding'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   InternshipsRoute: typeof InternshipsRoute
   JournalRoute: typeof JournalRoute
   MissionRoute: typeof MissionRoute
+  OnboardingRoute: typeof OnboardingRoute
   ProjectsRoute: typeof ProjectsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mission': {
@@ -369,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   InternshipsRoute: InternshipsRoute,
   JournalRoute: JournalRoute,
   MissionRoute: MissionRoute,
+  OnboardingRoute: OnboardingRoute,
   ProjectsRoute: ProjectsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
