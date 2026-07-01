@@ -13,6 +13,7 @@ import type { Session } from "@supabase/supabase-js";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
+import { LandingPage } from "@/components/LandingPage";
 import { GameProvider } from "@/hooks/use-game";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -77,15 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LamaOS" },
-      { name: "description", content: "A personal Life Tracker" },
+      { title: "LamaOS — Your personal operating system" },
+      {
+        name: "description",
+        content:
+          "A private dashboard for fitness, DSA, projects, internships, and goals — calm progress tracking for ambitious builders.",
+      },
       { name: "author", content: "Alema Emran" },
-      { property: "og:title", content: "LamaOS" },
-      { property: "og:description", content: "A personal Life Tracker" },
+      { property: "og:title", content: "LamaOS — Your personal operating system" },
+      {
+        property: "og:description",
+        content:
+          "Track fitness, career, and build goals in one calm dashboard. Private by default.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "LamaOS" },
-      { name: "twitter:description", content: "A personal Life Tracker" },
+      { name: "twitter:title", content: "LamaOS — Your personal operating system" },
+      {
+        name: "twitter:description",
+        content:
+          "Track fitness, career, and build goals in one calm dashboard. Private by default.",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -117,7 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const PUBLIC_PATHS = new Set(["/auth", "/reset-password"]);
+const AUTH_PUBLIC_PATHS = new Set(["/auth", "/reset-password"]);
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -143,7 +156,8 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  const isPublic = PUBLIC_PATHS.has(pathname);
+  const isAuthPublic = AUTH_PUBLIC_PATHS.has(pathname);
+  const showLanding = !session && pathname === "/";
 
   // Still checking session — render nothing to avoid a flash of /auth for signed-in users.
   if (!checked) {
@@ -154,8 +168,17 @@ function RootComponent() {
     );
   }
 
-  // Public pages (auth, reset-password) render without the shell.
-  if (isPublic) {
+  // Marketing landing for signed-out visitors at /
+  if (showLanding) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <LandingPage />
+      </QueryClientProvider>
+    );
+  }
+
+  // Auth pages render without the shell.
+  if (isAuthPublic) {
     return (
       <QueryClientProvider client={queryClient}>
         <Outlet />
@@ -163,10 +186,10 @@ function RootComponent() {
     );
   }
 
-  // Protected pages: redirect to /auth if no session.
+  // Protected pages: redirect to landing if no session.
   if (!session) {
     if (typeof window !== "undefined") {
-      router.navigate({ to: "/auth", replace: true });
+      router.navigate({ to: "/", replace: true });
     }
     return (
       <QueryClientProvider client={queryClient}>
