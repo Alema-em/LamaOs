@@ -1,4 +1,5 @@
 import type { DsaProblem } from "@/hooks/use-game";
+import { buildContributionGrid } from "@/lib/dates";
 
 export const DSA_TOPICS = [
   "Arrays",
@@ -76,4 +77,14 @@ export function dsaTopicCoverageRows(problems: DsaProblem[]): { topic: string; c
   }));
   if ((counts.Other ?? 0) > 0) rows.push({ topic: "Other", count: counts.Other });
   return rows;
+}
+
+/** Last N weeks of DSA activity for the contribution grid (84 cells, week-aligned). */
+export function buildDsaActivityGrid(problems: DsaProblem[], weeks = 12) {
+  const countByDate: Record<string, number> = {};
+  for (const p of problems) {
+    const k = typeof p.date === "string" && p.date.length >= 10 ? p.date.slice(0, 10) : "";
+    if (k) countByDate[k] = (countByDate[k] ?? 0) + 1;
+  }
+  return buildContributionGrid(countByDate, weeks);
 }

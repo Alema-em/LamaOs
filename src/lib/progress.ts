@@ -42,3 +42,15 @@ export function weightJourneyMetrics(start: number, current: number, goal: numbe
     remainingPct: clampPercent(100 - journeyPct),
   };
 }
+
+/** Average of percentage values, clamped 0–100. */
+export function averagePercent(values: number[]): number {
+  if (!values.length) return 0;
+  return clampPercent(values.reduce((a, b) => a + b, 0) / values.length);
+}
+
+/** Solved problems vs DSA goal; 0 when no goal set. */
+export function dsaGoalPercent(solved: number, goal: number): number {
+  if (goal <= 0) return 0;
+  return clampPercent((solved / goal) * 100);
+}

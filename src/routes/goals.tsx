@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGame, goalProgress, type Goal } from "@/hooks/use-game";
-import { clampPercent } from "@/lib/progress";
+import { clampPercent, averagePercent } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import {
   Plus,
@@ -51,9 +51,7 @@ function GoalsPage() {
   );
 
   const overall = state.goals.filter((g) => !g.archived);
-  const avg = overall.length
-    ? overall.reduce((a, g) => a + goalProgress(g), 0) / overall.length
-    : 0;
+  const avg = averagePercent(overall.map((g) => goalProgress(g)));
   const dueSoon = overall.filter(
     (g) => g.targetDate && (new Date(g.targetDate).getTime() - Date.now()) / 86400000 <= 14,
   ).length;

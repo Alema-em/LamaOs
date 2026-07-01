@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ElementType, type ReactNode } from "react";
 import { useGame, projectProgress } from "@/hooks/use-game";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
-import { clampPercent } from "@/lib/progress";
+import { clampPercent, averagePercent, safePercentage } from "@/lib/progress";
 import { Plus, Check, Trash2, Lightbulb } from "lucide-react";
 
 export const Route = createFileRoute("/career")({
@@ -33,22 +33,20 @@ function Career() {
   const c = state.career;
 
   const dsaCount = state.dsa.problems.length;
-  const dsaScore = Math.min(100, (dsaCount / 150) * 100);
+  const dsaScore = clampPercent(safePercentage(dsaCount, 150));
 
-  const projAvg = state.projects.length
-    ? state.projects.reduce((a, p) => a + projectProgress(p), 0) / state.projects.length
-    : 0;
-  const projectsScore = Math.min(100, projAvg * (state.projects.length >= 2 ? 1 : 0.7));
+  const projAvg = averagePercent(state.projects.map((p) => projectProgress(p)));
+  const projectsScore = clampPercent(projAvg * (state.projects.length >= 2 ? 1 : 0.7));
 
   const apps = state.internships.applications;
   const offers = apps.filter((a) => a.status === "offer").length;
   const interviews = apps.filter((a) => a.status === "interview").length;
-  const experienceScore = offers > 0 ? 100 : Math.min(90, apps.length * 6 + interviews * 12);
+  const experienceScore =
+    offers > 0 ? 100 : clampPercent(Math.min(90, apps.length * 6 + interviews * 12));
 
-  const resumeScore = Math.min(100, c.resumeUpdates * 20 + (c.linkedinScore + c.githubScore) / 2);
-  const networkingScore = Math.min(100, c.networkingContacts * 5);
-  const technicalScore = Math.min(
-    100,
+  const resumeScore = clampPercent(c.resumeUpdates * 20 + (c.linkedinScore + c.githubScore) / 2);
+  const networkingScore = clampPercent(c.networkingContacts * 5);
+  const technicalScore = clampPercent(
     c.technicalScore +
       (c.skills.length
         ? (c.skills.reduce((a, s) => a + s.level, 0) / (c.skills.length * 5)) * 50

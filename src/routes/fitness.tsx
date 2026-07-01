@@ -13,6 +13,9 @@ import {
 import {
   useGame,
   dailyScore,
+  fitnessWindowScore,
+  fitnessHabitStreak,
+  FITNESS_STREAK_THRESHOLD,
   today,
   calorieBarWidth,
   calorieInSuccessBand,
@@ -114,19 +117,21 @@ function Fitness() {
   const data = f.history.map((h) => ({ date: h.date.slice(5), weight: h.weight }));
 
   // Required pace vs current pace
+  const kgLeft = Math.max(0, f.current - f.goal);
   const daysToGoal = Math.max(1, Math.round((new Date(aug31).getTime() - Date.now()) / 86400000));
-  const requiredPerWeek = +(((f.current - f.goal) / daysToGoal) * 7).toFixed(2);
+  const requiredPerWeek = kgLeft === 0 ? 0 : +((kgLeft / daysToGoal) * 7).toFixed(2);
   const currentPace = forecast?.perWeek ?? 0;
-  const onTrack = forecast && new Date(forecast.date) <= new Date(aug31);
+  const onTrack =
+    kgLeft === 0 || (forecastReady && !!forecast && new Date(forecast.date) <= new Date(aug31));
 
   // Daily streaks & scores
   const todayLog = f.daily.find((d) => d.date === TODAY());
   const viewLog = f.daily.find((d) => d.date === selectedDate);
   const score = dailyScore(viewLog, f.targets);
 
-  const weekScore = computeWindowScore(f.daily, f.targets, 7);
-  const monthScore = computeWindowScore(f.daily, f.targets, 30);
-  const habitStreak = computeHabitStreak(f.daily, f.targets);
+  const weekScore = fitnessWindowScore(f.daily, f.targets, 7);
+  const monthScore = fitnessWindowScore(f.daily, f.targets, 30);
+  const habitStreak = fitnessHabitStreak(f.daily, f.targets);
 
   // Recommendations
   const recs = buildRecommendations(todayLog, f.targets, {
@@ -410,8 +415,8 @@ function Fitness() {
         <Panel title="Scores" hint="Habits">
           <div className="space-y-5">
             <ScoreRow label="Today" value={score} sub="vs daily targets" />
-            <ScoreRow label="Past 7 days" value={weekScore} sub="Weekly average" />
-            <ScoreRow label="Past 30 days" value={monthScore} sub="Monthly average" />
+            <ScoreRow label="Past 7 days" value={weekScore} sub="Avg on days you logged" />
+            <ScoreRow label="Past 30 days" value={monthScore} sub="Avg on days you logged" />
             <div className="rounded-lg border border-border bg-background/60 px-3 py-3">
               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Habit streak
@@ -419,7 +424,9 @@ function Fitness() {
               <div className="mt-1 flex items-center gap-2 font-display text-2xl">
                 <Flame className="h-5 w-5 text-accent" /> {habitStreak} days
               </div>
-              <div className="text-[11px] text-muted-foreground">Days you hit ≥60% of targets.</div>
+              <div className="text-[11px] text-muted-foreground">
+                Days you hit ≥{FITNESS_STREAK_THRESHOLD}% on logged days.
+              </div>
             </div>
           </div>
         </Panel>
@@ -500,31 +507,6 @@ function Fitness() {
 // ============================================
 // helpers
 // ============================================
-function computeWindowScore(daily: DailyLog[], t: FitnessTargets, days: number) {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
-  const cutoffKey = cutoff.toISOString().slice(0, 10);
-  const inWindow = daily.filter((d) => d.date >= cutoffKey);
-  if (!inWindow.length) return 0;
-  const sum = inWindow.reduce((a, d) => a + dailyScore(d, t), 0);
-  return Math.round(sum / days);
-}
-
-function computeHabitStreak(daily: DailyLog[], t: FitnessTargets) {
-  let streak = 0;
-  const cursor = new Date();
-  for (let i = 0; i < 365; i++) {
-    const key = cursor.toISOString().slice(0, 10);
-    const log = daily.find((d) => d.date === key);
-    if (log && dailyScore(log, t) >= 60) streak++;
-    else if (i === 0) {
-      /* today not yet — keep going */
-    } else break;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
-}
-
 function buildRecommendations(
   log: DailyLog | undefined,
   t: FitnessTargets,
@@ -562,12 +544,14 @@ function buildRecommendations(
       });
     }
   }
-  if (pace.onTrack) {
+  if (pace.requiredPerWeek === 0) {
+    /* at or below goal — no pace nudges */
+  } else if (pace.onTrack) {
     out.push({
       text: `You're currently ahead of schedule (${pace.currentPace}kg/wk vs ${pace.requiredPerWeek}kg/wk needed).`,
       tone: "good",
     });
-  } else if (pace.requiredPerWeek > 0 && pace.currentPace > 0) {
+  } else if (pace.currentPace > 0) {
     out.push({
       text: `Current pace ${pace.currentPace}kg/wk is below the ${pace.requiredPerWeek}kg/wk needed by Aug 31.`,
       tone: "warn",

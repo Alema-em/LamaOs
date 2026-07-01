@@ -10,6 +10,7 @@ import {
   createElement,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { clampPercent } from "@/lib/progress";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
 
@@ -1217,14 +1218,28 @@ function upsertDailyForDate(
 function calorieDailyPart(calories: number, target: number): number {
   if (!target) return 0;
   const ratio = calories / target;
-  if (ratio >= 0.9 && ratio <= 1.05) return 1;
+  if (ratio >= 0.9 && ratio <= 1.1) return 1;
   if (ratio < 0.9) return Math.min(1, calories / target);
-  return 0;
+  return Math.max(0.4, 1 - (ratio - 1.1) * 3);
 }
 
 export function calorieBarWidth(calories: number | undefined, target: number): number {
   if (calories === undefined || !target) return 0;
-  return Math.min(100, (calories / target) * 100);
+  return clampPercent((calories / target) * 100);
+}
+
+export const FITNESS_STREAK_THRESHOLD = 50;
+
+export function hasDailyHabitLog(log: DailyLog): boolean {
+  return (
+    log.calories !== undefined ||
+    log.protein !== undefined ||
+    log.water !== undefined ||
+    log.steps !== undefined ||
+    log.sleep !== undefined ||
+    log.walkMin !== undefined ||
+    log.gymMin !== undefined
+  );
 }
 
 export function calorieInSuccessBand(calories: number | undefined, target: number): boolean {
@@ -1242,9 +1257,10 @@ export function calorieStatusText(calories: number | undefined, target: number):
 }
 
 export function goalProgress(g: Goal): number {
-  if (g.milestones.length > 0)
-    return (g.milestones.filter((m) => m.done).length / g.milestones.length) * 100;
-  return Math.max(0, Math.min(100, g.manualProgress || 0));
+  if (g.milestones.length > 0) {
+    return clampPercent((g.milestones.filter((m) => m.done).length / g.milestones.length) * 100);
+  }
+  return clampPercent(g.manualProgress || 0);
 }
 
 export function projectProgress(p: Project): number {
@@ -1253,8 +1269,8 @@ export function projectProgress(p: Project): number {
   if (!tasks && !milestones) return 0;
   const taskPct = tasks ? p.tasks.filter((t) => t.done).length / tasks : 0;
   const msPct = milestones ? p.milestones.filter((m) => m.done).length / milestones : 0;
-  if (tasks && milestones) return (taskPct * 0.6 + msPct * 0.4) * 100;
-  return (tasks ? taskPct : msPct) * 100;
+  if (tasks && milestones) return clampPercent((taskPct * 0.6 + msPct * 0.4) * 100);
+  return clampPercent((tasks ? taskPct : msPct) * 100);
 }
 
 export function dailyScore(log: DailyLog | undefined, t: FitnessTargets): number {
@@ -1268,8 +1284,37 @@ export function dailyScore(log: DailyLog | undefined, t: FitnessTargets): number
   if (log.sleep !== undefined && t.sleep) parts.push(Math.min(1, log.sleep / t.sleep));
   if (log.walkMin !== undefined && t.walkMinDaily)
     parts.push(Math.min(1, log.walkMin / t.walkMinDaily));
+  const gymDaily = t.gymMinWeekly > 0 ? t.gymMinWeekly / 7 : 0;
+  if (log.gymMin !== undefined && gymDaily > 0) parts.push(Math.min(1, log.gymMin / gymDaily));
   if (!parts.length) return 0;
-  return Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
+  return clampPercent(Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100));
+}
+
+/** Average daily score on days with habit data in the last N days (unlogged days are skipped). */
+export function fitnessWindowScore(daily: DailyLog[], t: FitnessTargets, days: number): number {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffKey = cutoff.toISOString().slice(0, 10);
+  const logged = daily.filter((d) => d.date >= cutoffKey && hasDailyHabitLog(d));
+  if (!logged.length) return 0;
+  const sum = logged.reduce((a, d) => a + dailyScore(d, t), 0);
+  return Math.round(sum / logged.length);
+}
+
+/** Consecutive days (walking back from today) where logged habits meet the streak threshold. */
+export function fitnessHabitStreak(daily: DailyLog[], t: FitnessTargets): number {
+  let streak = 0;
+  const cursor = new Date();
+  for (let i = 0; i < 365; i++) {
+    const key = cursor.toISOString().slice(0, 10);
+    const log = daily.find((d) => d.date === key);
+    if (log && hasDailyHabitLog(log)) {
+      if (dailyScore(log, t) >= FITNESS_STREAK_THRESHOLD) streak++;
+      else if (i > 0) break;
+    }
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
 }
 
 export function useDerived() {

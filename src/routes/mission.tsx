@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useGame, goalProgress, type Goal } from "@/hooks/use-game";
-import { clampPercent } from "@/lib/progress";
+import { clampPercent, averagePercent } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import { CheckCircle2, AlertCircle, Calendar, Target, Plus } from "lucide-react";
 
@@ -68,9 +68,7 @@ function MissionControl() {
   const activeGoals = useMemo(() => state.goals.filter((g) => !g.archived), [state.goals]);
   const mission = useMemo(() => buildMission(activeGoals), [activeGoals]);
 
-  const completion = mission.length
-    ? mission.reduce((a, g) => a + g.progress, 0) / mission.length
-    : 0;
+  const completion = averagePercent(mission.map((g) => g.progress));
   const onTrackCount = mission.filter((g) => g.onTrack === true).length;
   const trackable = mission.filter((g) => g.onTrack !== null).length;
   const soonest = mission

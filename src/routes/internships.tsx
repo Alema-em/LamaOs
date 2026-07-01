@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useGame, type ApplicationStatus } from "@/hooks/use-game";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
-import { clampPercent } from "@/lib/progress";
+import { dsaGoalPercent } from "@/lib/progress";
 import { Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/internships")({
@@ -24,7 +24,7 @@ function Internships() {
   const apps = state.internships.applications;
   const goal = state.internships.goal;
   const submitted = apps.length;
-  const pct = goal > 0 ? clampPercent((submitted / goal) * 100) : 0;
+  const pct = dsaGoalPercent(submitted, goal);
 
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");

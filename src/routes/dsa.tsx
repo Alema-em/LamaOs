@@ -2,8 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useGame } from "@/hooks/use-game";
-import { DSA_TOPICS, dsaStreak, dsaTopicCoverageRows } from "@/lib/dsa-topics";
-import { clampPercent, safePercentage } from "@/lib/progress";
+import {
+  DSA_TOPICS,
+  dsaStreak,
+  dsaTopicCoverageRows,
+  buildDsaActivityGrid,
+} from "@/lib/dsa-topics";
+import { utcCalendarDateKey } from "@/lib/dates";
+import { clampPercent, dsaGoalPercent, safePercentage } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
 import { Code2, Trash2 } from "lucide-react";
 
@@ -17,7 +23,7 @@ const TOPICS = DSA_TOPICS;
 function Dsa() {
   const { state, logProblem, deleteProblem, setDsaGoal } = useGame();
   const ps = state.dsa.problems;
-  const pct = state.dsa.goal > 0 ? clampPercent((ps.length / state.dsa.goal) * 100) : 0;
+  const pct = dsaGoalPercent(ps.length, state.dsa.goal);
   const streakDays = useMemo(() => dsaStreak(ps), [ps]);
 
   const easy = ps.filter((p) => p.difficulty === "easy").length;
@@ -26,32 +32,21 @@ function Dsa() {
 
   const byTopic = useMemo(() => dsaTopicCoverageRows(ps), [ps]);
 
-  const days = useMemo(() => {
-    const map: Record<string, number> = {};
-    ps.forEach((p) => {
-      map[p.date] = (map[p.date] || 0) + 1;
-    });
-    return Array.from({ length: 84 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (83 - i));
-      const key = d.toISOString().slice(0, 10);
-      return { key, count: map[key] || 0 };
-    });
-  }, [ps]);
+  const days = useMemo(() => buildDsaActivityGrid(ps, 12), [ps]);
 
-  // Forecast: linear rate over last 14 days → days until goal
+  // Forecast: rate over last 14 calendar days → days until goal
   const forecast = useMemo(() => {
-    if (!state.dsa.goal || ps.length < 3) return null;
-    const cutoff = Date.now() - 14 * 86400000;
-    const recent = ps.filter((p) => new Date(p.date).getTime() >= cutoff).length;
-    if (recent < 2) return null;
-    const perDay = recent / 14;
+    if (!state.dsa.goal || ps.length < 1) return null;
     const left = state.dsa.goal - ps.length;
     if (left <= 0) return null;
+    const cutoffKey = utcCalendarDateKey(new Date(Date.now() - 14 * 86400000));
+    const recent = ps.filter((p) => (p.date?.slice(0, 10) ?? "") >= cutoffKey).length;
+    if (recent < 1) return null;
+    const perDay = recent / 14;
     const days = Math.ceil(left / perDay);
     const d = new Date();
-    d.setDate(d.getDate() + days);
-    return { perDay: +perDay.toFixed(2), date: d.toISOString().slice(0, 10), days };
+    d.setUTCDate(d.getUTCDate() + days);
+    return { perDay: +perDay.toFixed(2), date: utcCalendarDateKey(d), days };
   }, [ps, state.dsa.goal]);
 
   const [title, setTitle] = useState("");
@@ -120,7 +115,7 @@ function Dsa() {
             </div>
           ) : (
             <>
-              <div className="grid grid-flow-col grid-rows-7 gap-1.5">
+              <div className="grid grid-cols-12 grid-flow-col grid-rows-7 gap-1.5">
                 {days.map((d, i) => (
                   <motion.div
                     key={d.key}

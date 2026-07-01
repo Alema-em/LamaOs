@@ -4,7 +4,13 @@ import { useState, useMemo, type ElementType, type ReactNode } from "react";
 import { useGame, goalProgress, projectProgress, dailyScore } from "@/hooks/use-game";
 import { DSA_TOPICS } from "@/lib/dsa-topics";
 import { Mochi } from "@/components/Mochi";
-import { clampPercent, weightJourneyPercent } from "@/lib/progress";
+import {
+  clampPercent,
+  dsaGoalPercent,
+  weightJourneyPercent,
+  hasWeightSetup,
+  averagePercent,
+} from "@/lib/progress";
 import { Panel, Section, Stat } from "@/components/ui-kit";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -54,26 +60,22 @@ function Home() {
   const needed = xpForLevel(state.level);
   const xpPct = clampPercent((state.xp / needed) * 100);
 
-  const dsaPct =
-    state.dsa.goal > 0 ? clampPercent((state.dsa.problems.length / state.dsa.goal) * 100) : 0;
+  const dsaPct = dsaGoalPercent(state.dsa.problems.length, state.dsa.goal);
   const weightProgress = weightJourneyPercent(
     state.fitness.start,
     state.fitness.current,
     state.fitness.goal,
   );
   const activeGoals = state.goals.filter((g) => !g.archived);
-  const goalAvg = activeGoals.length
-    ? activeGoals.reduce((a, g) => a + goalProgress(g), 0) / activeGoals.length
-    : 0;
-  const projAvg = state.projects.length
-    ? state.projects.reduce((a, p) => a + projectProgress(p), 0) / state.projects.length
-    : 0;
-  const journey =
+  const goalAvg = averagePercent(activeGoals.map((g) => goalProgress(g)));
+  const projAvg = averagePercent(state.projects.map((p) => projectProgress(p)));
+  const journey = clampPercent(
     dsaPct * 0.25 +
-    weightProgress * 0.2 +
-    projAvg * 0.2 +
-    goalAvg * 0.25 +
-    Math.min(100, state.level * 8) * 0.1;
+      weightProgress * 0.2 +
+      projAvg * 0.2 +
+      goalAvg * 0.25 +
+      Math.min(100, state.level * 8) * 0.1,
+  );
 
   const weightSeries = state.fitness.history.map((h) => ({
     date: h.date.slice(5),
@@ -524,19 +526,32 @@ function buildToday(state: ReturnType<typeof useGame>["state"]) {
       top.push({ title: t.title, sub: `${p.name} · high priority`, to: "/projects" }),
     );
 
-  // Suggested focus area: pick lowest-progress active area
-  const dsaPct =
-    state.dsa.goal > 0 ? clampPercent((state.dsa.problems.length / state.dsa.goal) * 100) : 100;
-  const projAvg = state.projects.length
-    ? state.projects.reduce((a, p) => a + projectProgress(p), 0) / state.projects.length
-    : 100;
-  const wp = weightJourneyPercent(state.fitness.start, state.fitness.current, state.fitness.goal);
-  const choices: { name: string; pct: number; to: string }[] = [
-    { name: "DSA practice", pct: dsaPct, to: "/dsa" },
-    { name: "Project momentum", pct: projAvg, to: "/projects" },
-    { name: "Fitness progress", pct: wp, to: "/fitness" },
-  ];
-  const focus = choices.sort((a, b) => a.pct - b.pct)[0];
+  // Suggested focus area: pick lowest-progress active area (skip unset tracks)
+  const choices: { name: string; pct: number; to: string }[] = [];
+  if (state.dsa.goal > 0) {
+    choices.push({
+      name: "DSA practice",
+      pct: dsaGoalPercent(state.dsa.problems.length, state.dsa.goal),
+      to: "/dsa",
+    });
+  }
+  if (state.projects.length > 0) {
+    choices.push({
+      name: "Project momentum",
+      pct: averagePercent(state.projects.map((p) => projectProgress(p))),
+      to: "/projects",
+    });
+  }
+  if (hasWeightSetup(state.fitness.start, state.fitness.current, state.fitness.goal)) {
+    choices.push({
+      name: "Fitness progress",
+      pct: weightJourneyPercent(state.fitness.start, state.fitness.current, state.fitness.goal),
+      to: "/fitness",
+    });
+  }
+  const focus = choices.length
+    ? choices.sort((a, b) => a.pct - b.pct)[0]
+    : { name: "DSA practice", pct: 0, to: "/dsa" };
 
   return { upcoming, top, focus };
 }

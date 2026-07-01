@@ -10,7 +10,7 @@ import {
   type Priority,
 } from "@/hooks/use-game";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
-import { clampPercent } from "@/lib/progress";
+import { clampPercent, averagePercent } from "@/lib/progress";
 import {
   Plus,
   Pin,
@@ -44,15 +44,14 @@ function ProjectsPage() {
   const archived = state.projects.filter((p) => p.status === "archived");
   const shipped = state.projects.filter((p) => p.status === "shipped").length;
 
-  // Contextual progress: completed tasks + milestones out of total
   const totalTasks = state.projects.reduce((a, p) => a + p.tasks.length, 0);
   const doneTasks = state.projects.reduce((a, p) => a + p.tasks.filter((t) => t.done).length, 0);
   const totalMs = state.projects.reduce((a, p) => a + p.milestones.length, 0);
   const doneMs = state.projects.reduce((a, p) => a + p.milestones.filter((m) => m.done).length, 0);
   const totalItems = totalTasks + totalMs;
   const doneItems = doneTasks + doneMs;
-  const hasData = totalItems > 0;
-  const completionPct = hasData ? clampPercent((doneItems / totalItems) * 100) : 0;
+  const hasData = state.projects.length > 0;
+  const completionPct = averagePercent(state.projects.map((p) => projectProgress(p)));
   const openTasks = totalTasks - doneTasks;
 
   return (
@@ -295,9 +294,7 @@ function ProjectDetail({ project, onBack }: { project: Project; onBack: () => vo
   const [linkUrl, setLinkUrl] = useState("");
 
   const pct = projectProgress(project);
-  const completionRate = project.tasks.length
-    ? (project.tasks.filter((t) => t.done).length / project.tasks.length) * 100
-    : 0;
+  const completionRate = pct;
 
   // Velocity: tasks completed in last 14 days / 2 = per week
   const velocity = useMemo(() => {
