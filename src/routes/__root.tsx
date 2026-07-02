@@ -84,26 +84,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LamaOS — Your personal operating system" },
+      { title: "LamaOS — Run your life like a product" },
       {
         name: "description",
         content:
-          "A private dashboard for fitness, DSA, projects, internships, and goals — calm progress tracking for ambitious builders.",
+          "Free hosted dashboard for students and builders — fitness, DSA, internships, projects, and goals in one calm app.",
       },
       { name: "author", content: "Alema Emran" },
-      { property: "og:title", content: "LamaOS — Your personal operating system" },
+      { property: "og:title", content: "LamaOS — Run your life like a product" },
       {
         property: "og:description",
         content:
-          "Track fitness, career, and build goals in one calm dashboard. Private by default.",
+          "A calm life OS for students and builders. Free during beta — sign up and start tracking.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "LamaOS — Your personal operating system" },
+      { name: "twitter:title", content: "LamaOS — Run your life like a product" },
       {
         name: "twitter:description",
         content:
-          "Track fitness, career, and build goals in one calm dashboard. Private by default.",
+          "Fitness, DSA, internships, and goals in one hosted dashboard. Free during beta.",
       },
     ],
     links: [

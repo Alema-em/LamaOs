@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useGame, type DashboardPrefs } from "@/hooks/use-game";
 import { isDemoEmail } from "@/lib/demo-auth";
+import { HOSTED_FREE_BETA } from "@/lib/app";
 import { MODULE_META } from "@/lib/modules";
+import { APP_TEMPLATES, type AppTemplateId } from "@/lib/templates";
 import { PageHeader, Section, Panel } from "@/components/ui-kit";
 import { Download, Upload, RotateCcw, Sun, Moon, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +15,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset, resetDemoState, previewMode } =
+  const { state, setProfile, setPrefs, toggleTheme, setTemplate, exportJson, importJson, reset, resetDemoState, previewMode } =
     useGame();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMsg, setImportMsg] = useState<string | null>(null);
@@ -121,6 +123,37 @@ function SettingsPage() {
             </span>
           </button>
         </Panel>
+
+        <Panel title="Template" hint="Look & feel">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Pick a visual style. Classic is the original LamaOS. Dark mode still applies on top.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {APP_TEMPLATES.map((t) => {
+              const active = state.template === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTemplate(t.id as AppTemplateId)}
+                  className={`rounded-xl border p-4 text-left transition ${active ? "border-foreground ring-1 ring-foreground" : "border-border hover:bg-foreground/[0.03]"}`}
+                >
+                  <div className="flex gap-2">
+                    {t.swatch.map((color) => (
+                      <span
+                        key={color}
+                        className="h-6 w-6 rounded-full border border-border"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-3 font-medium">{t.name}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{t.desc}</div>
+                </button>
+              );
+            })}
+          </div>
+        </Panel>
       </Section>
 
       <Section>
@@ -199,7 +232,7 @@ function SettingsPage() {
       </Section>
 
       <Section className="pb-16">
-        <Panel title="Data" hint="Local only">
+        <Panel title="Data" hint={HOSTED_FREE_BETA ? "Synced to your account" : "Local only"}>
           <div className="grid gap-3 md:grid-cols-3">
             <button
               onClick={download}

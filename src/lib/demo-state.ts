@@ -153,10 +153,17 @@ export function createDemoState(): GameState {
       githubScore: 85,
       technicalScore: 68,
       networkingContacts: 8,
+      interviewPrepHours: 12,
+      presence: {
+        resumeFresh: true,
+        linkedinUpdated: true,
+        githubActive: true,
+        portfolioLive: false,
+      },
       skills: [
-        { id: rid(), name: "TypeScript", level: 4 },
-        { id: rid(), name: "React", level: 4 },
-        { id: rid(), name: "System design", level: 2 },
+        { id: rid(), name: "TypeScript", level: 4, category: "language" },
+        { id: rid(), name: "React", level: 4, category: "framework" },
+        { id: rid(), name: "System design", level: 2, category: "systems" },
       ],
     },
     goals: [

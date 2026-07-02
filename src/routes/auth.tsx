@@ -1,19 +1,27 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startDemo } from "@/lib/demo-auth";
+import { HOSTED_FREE_BETA } from "@/lib/app";
 import { Mochi } from "@/components/Mochi";
 
+type AuthSearch = {
+  signup?: string;
+};
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+    signup: typeof search.signup === "string" ? search.signup : undefined,
+  }),
   head: () => ({ meta: [{ title: "Sign in — LamaOS" }] }),
   component: AuthPage,
 });
-
 type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("signin");
+  const { signup } = Route.useSearch();
+  const [mode, setMode] = useState<Mode>(signup === "1" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -99,6 +107,14 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-md">
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="text-xs text-muted-foreground transition hover:text-foreground"
+          >
+            ← Back to home
+          </Link>
+        </div>
         <div className="mb-8 flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-lg bg-foreground text-background">
             <span className="font-display text-lg leading-none">L</span>
@@ -106,7 +122,7 @@ function AuthPage() {
           <div>
             <div className="font-display text-2xl leading-none">LamaOS</div>
             <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Your private operating system
+              {HOSTED_FREE_BETA ? "Free beta · Hosted app" : "Your private operating system"}
             </div>
           </div>
         </div>
@@ -124,10 +140,10 @@ function AuthPage() {
               </h1>
               <p className="text-xs text-muted-foreground">
                 {mode === "signup"
-                  ? "Begin your private operating system."
+                  ? "Free account — synced to LamaOS cloud."
                   : mode === "forgot"
                     ? "We'll email you a reset link."
-                    : "Sign in to continue."}
+                    : "Sign in to your LamaOS account."}
               </p>
             </div>
           </div>
@@ -264,7 +280,9 @@ function AuthPage() {
         </div>
 
         <p className="mt-6 text-center text-[11px] text-muted-foreground">
-          Your data is stored privately. Only you can read it.
+          {HOSTED_FREE_BETA
+            ? "Free during beta. Your data is private and synced to LamaOS."
+            : "Your data is stored privately. Only you can read it."}
         </p>
       </div>
     </div>

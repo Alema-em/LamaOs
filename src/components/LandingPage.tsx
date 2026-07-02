@@ -5,16 +5,21 @@ import {
   ArrowRight,
   BookOpen,
   Briefcase,
+  Check,
+  Cloud,
   Code2,
   FolderKanban,
   Footprints,
   GraduationCap,
   Rocket,
+  Shield,
   Sparkles,
   Target,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
 import { startDemo } from "@/lib/demo-auth";
+import { HOSTED_FREE_BETA } from "@/lib/app";
 import { Mochi } from "@/components/Mochi";
 import {
   DsaActivityPreview,
@@ -55,6 +60,48 @@ const MODULES = [
     desc: "Applications pipeline from applied to offer.",
   },
   { icon: BookOpen, name: "Journal", desc: "Reflect without leaving your operating system." },
+] as const;
+
+const AUDIENCES = [
+  {
+    icon: GraduationCap,
+    title: "Students",
+    desc: "Internship pipeline, DSA streaks, and fitness — without five different apps.",
+  },
+  {
+    icon: Code2,
+    title: "Builders",
+    desc: "Projects, goals, and journal in one shell while you ship on the side.",
+  },
+  {
+    icon: Target,
+    title: "Ambitious generalists",
+    desc: "Mission control for the life you're actually building — calm, not cluttered.",
+  },
+] as const;
+
+const STEPS = [
+  {
+    icon: UserPlus,
+    title: "Create a free account",
+    desc: "Google or email — takes under a minute. No setup, no config.",
+  },
+  {
+    icon: Rocket,
+    title: "Pick your track",
+    desc: "Student, builder, or full LamaOS. Turn modules on or off anytime.",
+  },
+  {
+    icon: Sparkles,
+    title: "Open it daily",
+    desc: "Log a workout, a problem, an application — streaks and scores compound.",
+  },
+] as const;
+
+const TRUST_SIGNALS = [
+  { icon: Cloud, label: "Synced to your account" },
+  { icon: Shield, label: "Private by default" },
+  { icon: Sparkles, label: "Free during beta" },
 ] as const;
 
 type CardPreviewProps = { size?: "full" | "card" };
@@ -148,17 +195,24 @@ export function LandingPage() {
             >
               Modules
             </a>
+            <a
+              href="#how"
+              className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:text-foreground sm:inline"
+            >
+              How it works
+            </a>
             <Link
               to="/auth"
-              className="rounded-md border border-border px-4 py-2 text-sm transition hover:bg-foreground hover:text-background"
+              className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:text-foreground sm:inline"
             >
               Sign in
             </Link>
             <Link
               to="/auth"
-              className="hidden rounded-md bg-foreground px-4 py-2 text-sm text-background transition hover:opacity-90 sm:inline"
+              search={{ signup: "1" }}
+              className="rounded-md bg-foreground px-4 py-2 text-sm text-background transition hover:opacity-90"
             >
-              Get started
+              Start free
             </Link>
           </div>
         </div>
@@ -178,7 +232,7 @@ export function LandingPage() {
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-xs text-muted-foreground backdrop-blur-sm"
               >
                 <Sparkles className="h-3.5 w-3.5 text-gold" aria-hidden />
-                Personal operating system
+                {HOSTED_FREE_BETA ? "Free during beta · Hosted app" : "Personal operating system"}
               </motion.div>
 
               <motion.h1
@@ -207,8 +261,8 @@ export function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               >
-                One private shell for the work that compounds — fitness, craft, and long-horizon
-                goals in one calm place.
+                A calm dashboard for students and builders — fitness, DSA, internships, projects,
+                and goals in one place. Sign up in seconds; we handle sync and hosting.
               </motion.p>
 
               <motion.div
@@ -219,6 +273,7 @@ export function LandingPage() {
               >
                 <Link
                   to="/auth"
+                  search={{ signup: "1" }}
                   className="group inline-flex items-center gap-2 rounded-md bg-foreground px-7 py-3.5 text-sm font-medium text-background transition hover:opacity-90 md:text-base"
                 >
                   Get started free
@@ -241,8 +296,94 @@ export function LandingPage() {
                 {demoBusy ? "Opening demo…" : "Or try the demo account"}
               </button>
 
+              <motion.ul
+                className="mx-auto mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.38, duration: 0.5 }}
+              >
+                {TRUST_SIGNALS.map(({ icon: Icon, label }) => (
+                  <li key={label} className="inline-flex items-center gap-2">
+                    <Icon className="h-3.5 w-3.5 text-foreground/50" aria-hidden />
+                    {label}
+                  </li>
+                ))}
+              </motion.ul>
+
               <HeroScrollCue />
             </div>
+          </div>
+        </section>
+
+        {/* Who it's for */}
+        <section id="how" className="relative border-t border-border bg-background">
+          <div
+            className="pointer-events-none absolute inset-0 bg-grid-strong opacity-[0.1]"
+            aria-hidden
+          />
+          <div className="relative mx-auto max-w-6xl px-6 py-16 md:py-20">
+            <Reveal className="text-center">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                How it works
+              </p>
+              <h2 className="mt-3 font-display text-3xl tracking-tight md:text-5xl">
+                Up and running in minutes.
+              </h2>
+            </Reveal>
+
+            <motion.ol
+              className="mt-12 grid gap-6 md:grid-cols-3"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-40px" }}
+            >
+              {STEPS.map(({ icon: Icon, title, desc }, i) => (
+                <motion.li
+                  key={title}
+                  variants={staggerItem}
+                  className="relative rounded-2xl border border-border bg-card p-6 shadow-soft"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-sm font-medium text-background">
+                      {i + 1}
+                    </span>
+                    <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </div>
+                  <h3 className="mt-4 font-display text-xl">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                </motion.li>
+              ))}
+            </motion.ol>
+
+            <Reveal className="mt-20 text-center" delay={0.05}>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                Built for
+              </p>
+              <h2 className="mt-3 font-display text-3xl tracking-tight md:text-4xl">
+                People who take their life seriously.
+              </h2>
+            </Reveal>
+
+            <motion.div
+              className="mt-10 grid gap-4 md:grid-cols-3"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-40px" }}
+            >
+              {AUDIENCES.map(({ icon: Icon, title, desc }) => (
+                <motion.div
+                  key={title}
+                  variants={staggerItem}
+                  className="rounded-xl border border-border bg-card/80 px-5 py-5"
+                >
+                  <Icon className="h-4 w-4 text-gold" aria-hidden />
+                  <div className="mt-3 font-medium">{title}</div>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </section>
 
@@ -325,6 +466,7 @@ export function LandingPage() {
                   </div>
                   <Link
                     to="/auth"
+                    search={{ signup: "1" }}
                     className="mt-4 inline-flex shrink-0 items-center gap-2 text-sm font-medium md:mt-0"
                   >
                     Open yours <ArrowRight className="h-4 w-4" />
@@ -393,14 +535,24 @@ export function LandingPage() {
                 Ready when you are.
               </h2>
               <p className="mx-auto mt-4 max-w-md text-lg text-muted-foreground">
-                Create an account and start with one small win today.
+                Free while we grow. Google or email — your data stays private and synced across
+                devices.
               </p>
+              <ul className="mx-auto mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                {["No credit card", "Google sign-in", "Export anytime"].map((item) => (
+                  <li key={item} className="inline-flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-gold" aria-hidden />
+                    {item}
+                  </li>
+                ))}
+              </ul>
               <motion.div className="mt-9" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   to="/auth"
+                  search={{ signup: "1" }}
                   className="inline-flex rounded-md bg-foreground px-7 py-3 text-sm font-medium text-background transition hover:opacity-90"
                 >
-                  Create your LamaOS
+                  Start free
                 </Link>
               </motion.div>
             </Reveal>
@@ -409,9 +561,14 @@ export function LandingPage() {
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-xs text-muted-foreground sm:flex-row">
-          <span>LamaOS — a personal life tracker</span>
-          <span>Private · Synced · Yours</span>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground sm:flex-row">
+          <span>LamaOS — hosted life OS for builders</span>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <span>Free beta · Private · Synced</span>
+            <Link to="/auth" className="transition hover:text-foreground">
+              Sign in
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

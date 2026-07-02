@@ -4,13 +4,13 @@ import { useState, useMemo, type ElementType, type ReactNode } from "react";
 import { useGame, goalProgress, projectProgress, dailyScore } from "@/hooks/use-game";
 import { DSA_TOPICS } from "@/lib/dsa-topics";
 import { Mochi } from "@/components/Mochi";
-import {
-  clampPercent,
+import { clampPercent,
   dsaGoalPercent,
   weightJourneyPercent,
   hasWeightSetup,
   averagePercent,
 } from "@/lib/progress";
+import { getEarnedAchievements } from "@/lib/achievements";
 import { Panel, Section, Stat } from "@/components/ui-kit";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -381,20 +381,22 @@ function Home() {
           )}
 
           {prefs.showAchievements && (
-            <Panel title="Recent unlocks" hint={`${state.achievements.length}`}>
+            <Panel title="Recent unlocks" hint={`${getEarnedAchievements(state).length}`}>
               <ul className="space-y-3">
-                {state.achievements.slice(0, 5).map((a) => (
+                {getEarnedAchievements(state)
+                  .slice(0, 5)
+                  .map((a) => (
                   <li
-                    key={a}
+                    key={a.id}
                     className="flex items-center gap-3 rounded-lg border border-border px-3 py-3"
                   >
                     <div className="grid h-9 w-9 place-items-center rounded-md bg-accent/20 text-accent-foreground">
                       <Trophy className="h-4 w-4" />
                     </div>
-                    <div className="text-sm font-medium">{a.replace(/-/g, " ")}</div>
+                    <div className="text-sm font-medium">{a.title}</div>
                   </li>
                 ))}
-                {state.achievements.length === 0 && (
+                {getEarnedAchievements(state).length === 0 && (
                   <li className="text-sm text-muted-foreground">
                     Your first unlock awaits the first real action.
                   </li>
@@ -419,7 +421,7 @@ function Home() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <AreaCard to="/mission" title="Mission" caption="Summer 2026" />
+            <AreaCard to="/mission" title="Mission" caption={`${state.goals.length} goals`} />
             <AreaCard to="/dsa" title="DSA" caption={`${state.dsa.problems.length} solved`} />
             <AreaCard
               to="/internships"

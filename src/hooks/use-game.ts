@@ -24,6 +24,9 @@ import {
   isBareAccount,
 } from "@/lib/demo-state";
 import { ALL_MODULES_ON, type ModuleFlags, type OnboardingPreset } from "@/lib/modules";
+import type { CareerSkillCategory } from "@/lib/career";
+import { DEFAULT_TEMPLATE, isAppTemplateId, type AppTemplateId } from "@/lib/templates";
+import { getEarnedAchievementIds } from "@/lib/achievements";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
 
@@ -171,11 +174,18 @@ export interface CareerSkill {
   id: string;
   name: string;
   level: number;
+  category: CareerSkillCategory;
 }
 export interface CareerCheck {
   id: string;
   text: string;
   done: boolean;
+}
+export interface CareerPresence {
+  resumeFresh: boolean;
+  linkedinUpdated: boolean;
+  githubActive: boolean;
+  portfolioLive: boolean;
 }
 export interface CareerState {
   resumeUpdates: number;
@@ -184,9 +194,16 @@ export interface CareerState {
   technicalScore: number;
   networkingContacts: number;
   interviewPrepHours: number;
+  presence: CareerPresence;
   skills: CareerSkill[];
   checklist: CareerCheck[];
 }
+export const DEFAULT_CAREER_PRESENCE: CareerPresence = {
+  resumeFresh: false,
+  linkedinUpdated: false,
+  githubActive: false,
+  portfolioLive: false,
+};
 export const DEFAULT_CAREER: CareerState = {
   resumeUpdates: 0,
   linkedinScore: 0,
@@ -194,6 +211,7 @@ export const DEFAULT_CAREER: CareerState = {
   technicalScore: 0,
   networkingContacts: 0,
   interviewPrepHours: 0,
+  presence: { ...DEFAULT_CAREER_PRESENCE },
   skills: [],
   checklist: [],
 };
@@ -238,6 +256,7 @@ export interface GameState {
   focus: string;
   mainGoal: string;
   theme: "light" | "dark";
+  template: AppTemplateId;
   onboarded: boolean;
   level: number;
   xp: number;
@@ -332,6 +351,7 @@ export const EMPTY_STATE: GameState = {
   focus: "",
   mainGoal: "",
   theme: "light",
+  template: DEFAULT_TEMPLATE,
   onboarded: false,
   level: 1,
   xp: 0,
@@ -460,7 +480,7 @@ function mergeState(saved: unknown): GameState {
     internships: { ...EMPTY_STATE.internships, ...(migrated.internships || {}) },
     brandforge: { ...EMPTY_STATE.brandforge, ...(migrated.brandforge || {}) },
     axiomera: { ...EMPTY_STATE.axiomera, ...(migrated.axiomera || {}) },
-    career: { ...DEFAULT_CAREER, ...(migrated.career || {}) },
+    career: mergeCareerState(migrated.career),
     prefs: {
       ...DEFAULT_PREFS,
       ...(migrated.prefs || {}),
@@ -474,7 +494,23 @@ function mergeState(saved: unknown): GameState {
     goals: Array.isArray(migrated.goals) ? migrated.goals : [],
     journal: Array.isArray(migrated.journal) ? migrated.journal : [],
     achievements: Array.isArray(migrated.achievements) ? migrated.achievements : [],
+    template: isAppTemplateId(migrated.template) ? migrated.template : DEFAULT_TEMPLATE,
   };
+}
+
+function mergeCareerState(raw: Partial<CareerState> | undefined): CareerState {
+  const c = { ...DEFAULT_CAREER, ...(raw || {}) };
+  const presence = { ...DEFAULT_CAREER_PRESENCE, ...(raw?.presence || {}) };
+  if (!raw?.presence) {
+    if (c.resumeUpdates > 0) presence.resumeFresh = true;
+    if (c.linkedinScore >= 50) presence.linkedinUpdated = true;
+    if (c.githubScore >= 50) presence.githubActive = true;
+  }
+  const skills = (Array.isArray(c.skills) ? c.skills : []).map((s) => ({
+    ...s,
+    category: s.category || "other",
+  }));
+  return { ...c, presence, skills };
 }
 
 function useGameStore() {
@@ -677,11 +713,26 @@ function useGameStore() {
     await supabase.auth.signOut();
   }, []);
 
-  // Theme
+  // Theme + visual template
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.documentElement.classList.toggle("dark", state.theme === "dark");
-  }, [state.theme]);
+    document.documentElement.dataset.template = state.template;
+  }, [state.theme, state.template]);
+
+  // Keep persisted achievements in sync with live progress
+  useEffect(() => {
+    if (!hydrated) return;
+    const earned = getEarnedAchievementIds(stateRef.current);
+    const prev = stateRef.current.achievements;
+    if (
+      earned.length === prev.length &&
+      earned.every((id) => prev.includes(id))
+    ) {
+      return;
+    }
+    setState((s) => ({ ...s, achievements: earned }));
+  }, [state, hydrated]);
 
   // Daily/weekly housekeeping
   useEffect(() => {
@@ -713,6 +764,10 @@ function useGameStore() {
 
   const toggleTheme = useCallback(() => {
     setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }));
+  }, []);
+
+  const setTemplate = useCallback((template: AppTemplateId) => {
+    setState((s) => ({ ...s, template }));
   }, []);
 
   const addXp = useCallback(
@@ -1056,12 +1111,24 @@ function useGameStore() {
   const setCareer = useCallback((patch: Partial<CareerState>) => {
     setState((s) => ({ ...s, career: { ...s.career, ...patch } }));
   }, []);
-  const addCareerSkill = useCallback((name: string, level: number) => {
+  const setCareerPresence = useCallback((patch: Partial<CareerPresence>) => {
     setState((s) => ({
       ...s,
-      career: { ...s.career, skills: [{ id: id(), name, level }, ...s.career.skills] },
+      career: { ...s.career, presence: { ...s.career.presence, ...patch } },
     }));
   }, []);
+  const addCareerSkill = useCallback(
+    (name: string, level: number, category: CareerSkillCategory = "other") => {
+      setState((s) => ({
+        ...s,
+        career: {
+          ...s.career,
+          skills: [{ id: id(), name, level, category }, ...s.career.skills],
+        },
+      }));
+    },
+    [],
+  );
   const removeCareerSkill = useCallback((sid: string) => {
     setState((s) => ({
       ...s,
@@ -1242,6 +1309,7 @@ function useGameStore() {
     update,
     setProfile,
     toggleTheme,
+    setTemplate,
     touch,
 
     setFitnessTargets,
@@ -1271,6 +1339,7 @@ function useGameStore() {
     addProjectLink,
     toggleProjectPin,
     setCareer,
+    setCareerPresence,
     addCareerSkill,
     removeCareerSkill,
     addCareerCheck,

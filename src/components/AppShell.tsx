@@ -24,6 +24,7 @@ import {
 import { useState, useEffect, type ReactNode } from "react";
 import { useGame, type SyncStatus } from "@/hooks/use-game";
 import { routeModule } from "@/lib/modules";
+import { HOSTED_FREE_BETA } from "@/lib/app";
 import { Mochi } from "./Mochi";
 import { cn } from "@/lib/utils";
 
@@ -284,6 +285,11 @@ function SidebarContents({
 
       <div className="mx-3 mb-2 px-1">
         <SaveBadge lastSaved={lastSaved} hydrated={hydrated} syncStatus={syncStatus} />
+        {HOSTED_FREE_BETA && (
+          <div className="mt-2 text-center text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            Free beta
+          </div>
+        )}
       </div>
 
       <button
