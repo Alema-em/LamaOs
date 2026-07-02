@@ -43,7 +43,7 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { state, lastSaved, hydrated, syncStatus, toggleTheme, signOut } = useGame();
+  const { state, lastSaved, hydrated, syncStatus, toggleTheme, signOut, previewMode } = useGame();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -134,6 +134,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className="flex-1 overflow-y-auto"
         >
+          {previewMode && (
+            <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-950 dark:text-amber-100">
+              Demo preview — sample data stays in this browser only.{" "}
+              <Link to="/settings" className="underline underline-offset-2">
+                Reset demo data
+              </Link>
+            </div>
+          )}
           {children}
         </motion.main>
       </div>

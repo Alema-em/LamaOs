@@ -13,7 +13,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset, resetDemoState } =
+  const { state, setProfile, setPrefs, toggleTheme, exportJson, importJson, reset, resetDemoState, previewMode } =
     useGame();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMsg, setImportMsg] = useState<string | null>(null);
@@ -151,11 +151,13 @@ function SettingsPage() {
         </Panel>
       </Section>
 
-      {demoUser && (
+      {(demoUser || previewMode) && (
         <Section>
           <Panel title="Demo account" hint="Preview">
             <p className="mb-4 text-sm text-muted-foreground">
-              Reset sample data to the latest demo template — useful when testing new features.
+              {previewMode
+                ? "Browser preview — data stays on this device only. Reset to reload the latest sample template."
+                : "Reset sample data to the latest demo template — useful when testing new features."}
             </p>
             <button
               type="button"

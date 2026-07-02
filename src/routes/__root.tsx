@@ -17,6 +17,11 @@ import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { LandingPage } from "@/components/LandingPage";
 import { GameProvider } from "@/hooks/use-game";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  exitLocalDemoPreview,
+  isLocalDemoPreview,
+  PREVIEW_CHANGED_EVENT,
+} from "@/lib/demo-auth";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +144,14 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [session, setSession] = useState<Session | null>(null);
   const [checked, setChecked] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+
+  useEffect(() => {
+    const syncPreview = () => setPreviewMode(isLocalDemoPreview());
+    syncPreview();
+    window.addEventListener(PREVIEW_CHANGED_EVENT, syncPreview);
+    return () => window.removeEventListener(PREVIEW_CHANGED_EVENT, syncPreview);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -149,16 +162,21 @@ function RootComponent() {
       setSession(s);
       if (event === "SIGNED_OUT") {
         queryClient.clear();
-        router.navigate({ to: "/auth", replace: true });
+        if (!isLocalDemoPreview()) {
+          router.navigate({ to: "/auth", replace: true });
+        }
       } else if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        exitLocalDemoPreview();
         router.invalidate();
       }
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  const hasAccess = Boolean(session) || previewMode;
+
   const isAuthPublic = AUTH_PUBLIC_PATHS.has(pathname);
-  const showLanding = !session && pathname === "/";
+  const showLanding = !hasAccess && pathname === "/";
 
   // Still checking session — render nothing to avoid a flash of /auth for signed-in users.
   if (!checked) {
@@ -187,8 +205,8 @@ function RootComponent() {
     );
   }
 
-  // Protected pages: redirect to landing if no session.
-  if (!session) {
+  // Protected pages: redirect to landing if no session or preview.
+  if (!hasAccess) {
     if (typeof window !== "undefined") {
       router.navigate({ to: "/", replace: true });
     }

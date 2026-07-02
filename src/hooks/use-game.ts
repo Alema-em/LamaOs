@@ -11,7 +11,13 @@ import {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { clampPercent } from "@/lib/progress";
-import { isDemoEmail } from "@/lib/demo-auth";
+import {
+  isDemoEmail,
+  isLocalDemoPreview,
+  exitLocalDemoPreview,
+  PREVIEW_CHANGED_EVENT,
+  PREVIEW_STATE_KEY,
+} from "@/lib/demo-auth";
 import {
   createDemoState,
   demoSeedNeedsRefresh,
@@ -478,6 +484,7 @@ function useGameStore() {
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("loading");
   const [userId, setUserId] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextSave = useRef(true); // first state set after load shouldn't trigger a save
@@ -509,6 +516,46 @@ function useGameStore() {
     }
   }, [hydrated, userId, persistState]);
 
+  useEffect(() => {
+    const syncPreview = () => setPreviewMode(isLocalDemoPreview());
+    syncPreview();
+    window.addEventListener(PREVIEW_CHANGED_EVENT, syncPreview);
+    return () => window.removeEventListener(PREVIEW_CHANGED_EVENT, syncPreview);
+  }, []);
+
+  useEffect(() => {
+    if (!previewMode) return;
+    let cancelled = false;
+    setSyncStatus("loading");
+    try {
+      let next = createDemoState();
+      const raw = localStorage.getItem(PREVIEW_STATE_KEY);
+      if (raw) {
+        next = mergeState(JSON.parse(raw));
+      }
+      if (demoSeedNeedsRefresh(next)) {
+        next = createDemoState();
+      }
+      if (cancelled) return;
+      skipNextSave.current = true;
+      setUserId(null);
+      setState(next);
+      setHydrated(true);
+      setLastSaved(Date.now());
+      setSyncStatus("saved");
+    } catch (e) {
+      console.error("[useGame] preview load failed", e);
+      if (cancelled) return;
+      skipNextSave.current = true;
+      setState(createDemoState());
+      setHydrated(true);
+      setSyncStatus("error");
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [previewMode]);
+
   // Load from cloud whenever the auth session changes.
   useEffect(() => {
     let cancelled = false;
@@ -517,6 +564,7 @@ function useGameStore() {
       if (cancelled) return;
       setUserId(uid);
       if (!uid) {
+        if (isLocalDemoPreview()) return;
         skipNextSave.current = true;
         setState(EMPTY_STATE);
         setHydrated(true);
@@ -570,7 +618,8 @@ function useGameStore() {
 
   // Debounced persist to Supabase whenever state changes (after first load).
   useEffect(() => {
-    if (!hydrated || !userId) return;
+    if (!hydrated || previewMode) return;
+    if (!userId) return;
     if (skipNextSave.current) {
       skipNextSave.current = false;
       return;
@@ -594,6 +643,22 @@ function useGameStore() {
     };
   }, [state, hydrated, userId, persistState]);
 
+  useEffect(() => {
+    if (!hydrated || !previewMode) return;
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(PREVIEW_STATE_KEY, JSON.stringify(stateRef.current));
+      setLastSaved(Date.now());
+      setSyncStatus("saved");
+    } catch (e) {
+      console.error("[useGame] preview save failed", e);
+      setSyncStatus("error");
+    }
+  }, [state, hydrated, previewMode]);
+
   // Clean up legacy localStorage keys (one-time)
   useEffect(() => {
     try {
@@ -605,6 +670,10 @@ function useGameStore() {
   }, []);
 
   const signOut = useCallback(async () => {
+    if (isLocalDemoPreview()) {
+      exitLocalDemoPreview();
+      return;
+    }
     await supabase.auth.signOut();
   }, []);
 
@@ -1168,6 +1237,7 @@ function useGameStore() {
     lastSaved,
     syncStatus,
     userId,
+    previewMode,
     signOut,
     update,
     setProfile,

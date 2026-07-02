@@ -14,7 +14,7 @@ import {
   Target,
 } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
-import { isDemoConfigured, signInAsDemo } from "@/lib/demo-auth";
+import { startDemo } from "@/lib/demo-auth";
 import { Mochi } from "@/components/Mochi";
 import {
   DsaActivityPreview,
@@ -102,10 +102,13 @@ export function LandingPage() {
   }, []);
 
   async function tryDemo() {
-    if (!isDemoConfigured()) return;
     setDemoBusy(true);
     try {
-      await signInAsDemo();
+      const mode = await startDemo();
+      if (mode === "preview") {
+        navigate({ to: "/" });
+        return;
+      }
       navigate({ to: "/" });
     } finally {
       setDemoBusy(false);
@@ -229,16 +232,14 @@ export function LandingPage() {
                 </a>
               </motion.div>
 
-              {isDemoConfigured() && (
-                <button
-                  type="button"
-                  disabled={demoBusy}
-                  onClick={() => void tryDemo()}
-                  className="mt-5 text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline disabled:opacity-50"
-                >
-                  {demoBusy ? "Opening demo…" : "Or try the demo account"}
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={demoBusy}
+                onClick={() => void tryDemo()}
+                className="mt-5 text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline disabled:opacity-50"
+              >
+                {demoBusy ? "Opening demo…" : "Or try the demo account"}
+              </button>
 
               <HeroScrollCue />
             </div>
