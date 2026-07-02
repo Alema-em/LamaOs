@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startDemo } from "@/lib/demo-auth";
 import { HOSTED_FREE_BETA } from "@/lib/app";
+import { LamaMark } from "@/components/LamaMark";
 import { Mochi } from "@/components/Mochi";
 
 type AuthSearch = {
@@ -115,17 +116,16 @@ function AuthPage() {
             ← Back to home
           </Link>
         </div>
-        <div className="mb-8 flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-lg bg-foreground text-background">
-            <span className="font-display text-lg leading-none">L</span>
-          </div>
-          <div>
-            <div className="font-display text-2xl leading-none">LamaOS</div>
+        <LamaMark
+          className="mb-8"
+          size={40}
+          nameClassName="text-2xl"
+          subtitle={
             <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               {HOSTED_FREE_BETA ? "Free beta · Hosted app" : "Your private operating system"}
             </div>
-          </div>
-        </div>
+          }
+        />
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
           <div className="mb-5 flex items-center gap-3">

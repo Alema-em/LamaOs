@@ -20,6 +20,7 @@ import {
 import { useEffect, useState, type ComponentType } from "react";
 import { startDemo } from "@/lib/demo-auth";
 import { HOSTED_FREE_BETA } from "@/lib/app";
+import { LamaMark } from "@/components/LamaMark";
 import { Mochi } from "@/components/Mochi";
 import {
   DsaActivityPreview,
@@ -172,16 +173,7 @@ export function LandingPage() {
         }`}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <motion.div
-              className="grid h-9 w-9 place-items-center rounded-lg bg-foreground text-background"
-              whileHover={{ scale: 1.04 }}
-              transition={{ type: "spring", stiffness: 400, damping: 22 }}
-            >
-              <span className="font-display text-base leading-none">L</span>
-            </motion.div>
-            <span className="font-display text-xl">LamaOS</span>
-          </div>
+          <LamaMark size={36} nameClassName="text-xl" />
           <div className="flex items-center gap-2">
             <a
               href="#product"

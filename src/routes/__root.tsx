@@ -12,6 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import appCss from "../styles.css?url";
+import { LAMA_LOGO_URL } from "@/components/LamaLogo";
 import { AppShell } from "@/components/AppShell";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { LandingPage } from "@/components/LandingPage";
@@ -90,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Free hosted dashboard for students and builders — fitness, DSA, internships, projects and goals in one calm app.",
       },
-      { name: "author", content: "Alema Emran" },
+      { name: "author", content: "LamaOS" },
       { property: "og:title", content: "LamaOS — Run your life like a product" },
       {
         property: "og:description",
@@ -98,6 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "A calm life OS for students and builders. Free during beta — sign up and start tracking.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://lama-os.vercel.app/lamaos-logo.png" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "LamaOS — Run your life like a product" },
       {
@@ -107,6 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     links: [
+      { rel: "icon", href: LAMA_LOGO_URL, type: "image/png" },
+      { rel: "apple-touch-icon", href: LAMA_LOGO_URL },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

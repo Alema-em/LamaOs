@@ -25,6 +25,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { useGame, type SyncStatus } from "@/hooks/use-game";
 import { routeModule } from "@/lib/modules";
 import { HOSTED_FREE_BETA } from "@/lib/app";
+import { LamaMark } from "@/components/LamaMark";
 import { Mochi } from "./Mochi";
 import { cn } from "@/lib/utils";
 
@@ -227,17 +228,15 @@ function SidebarContents({
   return (
     <>
       <div className="flex items-center justify-between gap-3 px-6 py-6">
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-foreground text-background">
-            <span className="font-display text-lg leading-none">L</span>
-          </div>
-          <div>
-            <div className="font-display text-lg leading-none">LamaOS</div>
-            <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground truncate max-w-[140px]">
+        <LamaMark
+          size={36}
+          nameClassName="text-lg"
+          subtitle={
+            <div className="mt-1 truncate max-w-[140px] text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               {name ? name : "Your private OS"}
             </div>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3">
