@@ -64,7 +64,7 @@ function SettingsPage() {
       <PageHeader
         eyebrow="Operating system"
         title="Settings"
-        subtitle="Profile, modules, and data — synced to your account."
+        subtitle="Profile, modules and data — synced to your account."
       />
 
       <Section className="grid gap-6 lg:grid-cols-2">
@@ -159,7 +159,7 @@ function SettingsPage() {
       <Section>
         <Panel title="Sidebar modules" hint="Navigation">
           <p className="mb-4 text-sm text-muted-foreground">
-            Turn modules on or off. Home, History, Achievements, and Settings always stay visible.
+            Turn modules on or off. Home, History, Achievements and Settings always stay visible.
           </p>
           <div className="grid gap-2 md:grid-cols-2">
             {MODULE_META.map((m) => (

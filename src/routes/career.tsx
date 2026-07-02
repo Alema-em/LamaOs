@@ -55,7 +55,7 @@ function Career() {
       <PageHeader
         eyebrow="Career"
         title="Career Command Center"
-        subtitle="Craft, pipeline, and presence — pulled from what you already log in LamaOS."
+        subtitle="Craft, pipeline and presence — pulled from what you already log in LamaOS."
       />
 
       <Section className="grid grid-cols-2 gap-x-10 gap-y-8 border-b border-border md:grid-cols-4">
@@ -170,7 +170,7 @@ function Career() {
           <div className="mt-4 space-y-4 max-h-80 overflow-y-auto">
             {skillsByCategory.size === 0 && (
               <p className="text-sm text-muted-foreground">
-                Add languages, frameworks, and systems you want recruiters to notice.
+                Add languages, frameworks and systems you want recruiters to notice.
               </p>
             )}
             {SKILL_CATEGORIES.map((cat) => {

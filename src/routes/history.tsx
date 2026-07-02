@@ -72,7 +72,7 @@ function History() {
       <PageHeader
         eyebrow="Your Journey"
         title="History"
-        subtitle="Every event, snapshot, and chapter of your progress over time."
+        subtitle="Every event, snapshot and chapter of your progress over time."
       />
 
       <Section className="grid grid-cols-2 gap-x-10 gap-y-8 border-b border-border md:grid-cols-4">
@@ -115,7 +115,7 @@ function ActivityFeed({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center text-sm text-muted-foreground">
-        Nothing recorded yet. As you log weight, solve problems, apply to roles, complete tasks, and
+        Nothing recorded yet. As you log weight, solve problems, apply to roles, complete tasks and
         write journal entries, they'll appear here.
       </div>
     );

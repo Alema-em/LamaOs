@@ -33,3 +33,11 @@ export function buildContributionGrid(
   }
   return cells;
 }
+
+/** Split an 84-cell grid into week columns (7 rows each). */
+export function chunkContributionWeeks(
+  cells: ContributionCell[],
+  weeks = 12,
+): ContributionCell[][] {
+  return Array.from({ length: weeks }, (_, w) => cells.slice(w * 7, w * 7 + 7));
+}

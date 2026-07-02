@@ -25,7 +25,7 @@ const PRESETS: {
   {
     id: "full",
     title: "Full LamaOS",
-    desc: "Every module — fitness, DSA, career, projects, and more.",
+    desc: "Every module — fitness, DSA, career, projects and more.",
   },
   {
     id: "student",

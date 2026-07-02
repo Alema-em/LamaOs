@@ -124,7 +124,7 @@ function GoalsPage() {
             <div className="font-display text-xl">No {tab} goals yet</div>
             <p className="max-w-md text-sm text-muted-foreground">
               {tab === "active"
-                ? "Goals you create here power your dashboard, analytics, and forecasts. Start with one."
+                ? "Goals you create here power your dashboard, analytics and forecasts. Start with one."
                 : "Anything you archive will be kept here as a record of what you outgrew."}
             </p>
             {tab === "active" && (

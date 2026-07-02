@@ -80,7 +80,7 @@ function MissionControl() {
       <PageHeader
         eyebrow="Your Goals"
         title="Mission Control"
-        subtitle="A live view of every goal you've set. Progress, pace, and what to do next."
+        subtitle="A live view of every goal you've set. Progress, pace and what to do next."
       />
 
       {mission.length === 0 ? (
@@ -89,7 +89,7 @@ function MissionControl() {
             <Target className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
             <h3 className="font-display text-2xl">Mission Control is empty</h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-              This space tracks the goals you set for yourself — your progress, your pace, and what
+              This space tracks the goals you set for yourself — your progress, your pace and what
               to do next. Create your first goal to see it light up here.
             </p>
             <Link

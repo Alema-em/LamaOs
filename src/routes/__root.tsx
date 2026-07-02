@@ -88,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Free hosted dashboard for students and builders — fitness, DSA, internships, projects, and goals in one calm app.",
+          "Free hosted dashboard for students and builders — fitness, DSA, internships, projects and goals in one calm app.",
       },
       { name: "author", content: "Alema Emran" },
       { property: "og:title", content: "LamaOS — Run your life like a product" },
@@ -103,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Fitness, DSA, internships, and goals in one hosted dashboard. Free during beta.",
+          "Fitness, DSA, internships and goals in one hosted dashboard. Free during beta.",
       },
     ],
     links: [

@@ -3,7 +3,7 @@
  *
  * Usage:
  *   1. Copy env.production.template → .env.production
- *   2. Fill in your NEW project URL, publishable key, and database password
+ *   2. Fill in your NEW project URL, publishable key and database password
  *   3. npm run setup:supabase
  *
  * Does not touch your local .env (Lovable personal data stays separate).

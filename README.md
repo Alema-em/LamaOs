@@ -1,6 +1,6 @@
 # Lama OS
 
-**A personal life operating system for goals, fitness, DSA, projects, and daily consistency.**
+**A personal life operating system for goals, fitness, DSA, projects and daily consistency.**
 
 Lama OS is a private web app for tracking the areas that matter day to day: fitness habits, DSA practice, projects, goals, internships, journaling and a unified dashboard. Your data stays tied to your account and syncs through Supabase.
 

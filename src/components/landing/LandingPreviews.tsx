@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { BookOpen, Code2, Footprints } from "lucide-react";
+import { DsaActivityGrid } from "@/components/DsaActivityGrid";
 import { Mochi } from "@/components/Mochi";
 import { clampPercent } from "@/lib/progress";
 
@@ -16,6 +17,8 @@ const DSA_DEMO = [
   0, 2, 0, 1, 0, 0, 0, 1, 0, 2, 3, 0, 1, 0, 0, 2, 0, 1, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 2, 1, 0, 0, 1,
   0, 3, 0, 2, 0, 1, 0, 0, 0, 2, 1, 0, 0, 1, 0, 2, 0,
 ] as const;
+
+const DSA_DEMO_CELLS = DSA_DEMO.map((count, i) => ({ key: String(i), count }));
 
 const STEP_DEMO = [
   { day: "04", pct: 100, complete: true },
@@ -217,24 +220,7 @@ export function DsaActivityPreview({
           </div>
         )}
       </div>
-      <div
-        className={
-          isCard
-            ? "grid grid-flow-col grid-rows-7 grid-cols-12 gap-[3px]"
-            : "grid grid-cols-12 grid-flow-col grid-rows-7 gap-1.5"
-        }
-      >
-        {DSA_DEMO.map((count, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.02 + i * 0.004, duration: 0.3, ease }}
-            className={isCard ? "h-2 w-2 rounded-[2px]" : "aspect-square rounded-[3px]"}
-            style={{ background: dsaCellBg(count) }}
-          />
-        ))}
-      </div>
+      <DsaActivityGrid cells={DSA_DEMO_CELLS} compact={isCard} />
       <div
         className={`mt-2.5 flex items-center gap-2 uppercase tracking-[0.18em] text-muted-foreground ${
           isCard ? "text-[8px]" : "mt-4 gap-3 text-[10px]"

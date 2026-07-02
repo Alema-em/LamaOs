@@ -44,7 +44,7 @@ export const MODULE_META: {
   {
     id: "fitness",
     label: "Fitness",
-    desc: "Weight, habits, and daily targets",
+    desc: "Weight, habits and daily targets",
     path: "/fitness",
     icon: Activity,
   },

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useGame } from "@/hooks/use-game";
 import {
   DSA_TOPICS,
@@ -11,6 +10,7 @@ import {
 import { utcCalendarDateKey } from "@/lib/dates";
 import { clampPercent, dsaGoalPercent, safePercentage } from "@/lib/progress";
 import { PageHeader, Section, Panel, Stat } from "@/components/ui-kit";
+import { DsaActivityGrid } from "@/components/DsaActivityGrid";
 import { Code2, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/dsa")({
@@ -115,24 +115,7 @@ function Dsa() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-12 grid-flow-col grid-rows-7 gap-1.5">
-                {days.map((d, i) => (
-                  <motion.div
-                    key={d.key}
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.004 }}
-                    title={`${d.key}: ${d.count}`}
-                    className="aspect-square rounded-[3px]"
-                    style={{
-                      background:
-                        d.count === 0
-                          ? "color-mix(in oklab, var(--foreground) 5%, transparent)"
-                          : `color-mix(in oklab, var(--gold) ${30 + d.count * 22}%, transparent)`,
-                    }}
-                  />
-                ))}
-              </div>
+              <DsaActivityGrid cells={days} animate />
               <div className="mt-4 flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Less
                 {[0, 1, 2, 3].map((n) => (

@@ -44,13 +44,13 @@ const MODULES = [
   {
     icon: Activity,
     name: "Fitness",
-    desc: "Weight, habits, and daily targets — quiet consistency.",
+    desc: "Weight, habits and daily targets — quiet consistency.",
   },
-  { icon: Code2, name: "DSA", desc: "Practice log, topic coverage, and streaks." },
+  { icon: Code2, name: "DSA", desc: "Practice log, topic coverage and streaks." },
   {
     icon: FolderKanban,
     name: "Projects",
-    desc: "Ship side work with tasks, milestones, and momentum.",
+    desc: "Ship side work with tasks, milestones and momentum.",
   },
   { icon: Target, name: "Goals", desc: "Long-horizon aims broken into milestones." },
   { icon: GraduationCap, name: "Career", desc: "Skills, resume, networking — one dashboard." },
@@ -66,12 +66,12 @@ const AUDIENCES = [
   {
     icon: GraduationCap,
     title: "Students",
-    desc: "Internship pipeline, DSA streaks, and fitness — without five different apps.",
+    desc: "Internship pipeline, DSA streaks and fitness — without five different apps.",
   },
   {
     icon: Code2,
     title: "Builders",
-    desc: "Projects, goals, and journal in one shell while you ship on the side.",
+    desc: "Projects, goals and journal in one shell while you ship on the side.",
   },
   {
     icon: Target,
@@ -130,7 +130,7 @@ const PRODUCT_CARDS: {
   {
     icon: BookOpen,
     title: "Journal stream",
-    desc: "Mood, kind, and date on every entry. Reflect without switching apps.",
+    desc: "Mood, kind and date on every entry. Reflect without switching apps.",
     Preview: JournalPreview,
     accent: "from-lavender/10 to-transparent",
   },
@@ -261,7 +261,7 @@ export function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               >
-                A calm dashboard for students and builders — fitness, DSA, internships, projects,
+                A calm dashboard for students and builders — fitness, DSA, internships, projects
                 and goals in one place. Sign up in seconds; we handle sync and hosting.
               </motion.p>
 
@@ -402,7 +402,7 @@ export function LandingPage() {
                 Crafted views, not generic widgets.
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-                Real panels from the app — same grids, rings, and calm typography you sign in to.
+                Real panels from the app — same grids, rings and calm typography you sign in to.
               </p>
             </Reveal>
 
@@ -460,7 +460,7 @@ export function LandingPage() {
                       <h3 className="font-display text-lg">Home dashboard</h3>
                     </div>
                     <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
-                      Journey progress, streak, and today&apos;s score — your morning briefing in
+                      Journey progress, streak and today&apos;s score — your morning briefing in
                       one glance.
                     </p>
                   </div>
