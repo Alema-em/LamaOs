@@ -13,6 +13,7 @@ import type { Session } from "@supabase/supabase-js";
 
 import appCss from "../styles.css?url";
 import { LAMA_LOGO_URL } from "@/components/LamaLogo";
+import { VercelAnalytics } from "@/components/VercelAnalytics";
 import { AppShell } from "@/components/AppShell";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { LandingPage } from "@/components/LandingPage";
@@ -134,6 +135,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <VercelAnalytics />
         <Scripts />
       </body>
     </html>
