@@ -6,6 +6,7 @@ import { HOSTED_FREE_BETA } from "@/lib/app";
 import { MODULE_META } from "@/lib/modules";
 import { APP_TEMPLATES, type AppTemplateId } from "@/lib/templates";
 import { PageHeader, Section, Panel } from "@/components/ui-kit";
+import { FeedbackForm } from "@/components/FeedbackForm";
 import { Download, Upload, RotateCcw, Sun, Moon, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -270,9 +271,22 @@ function SettingsPage() {
         </Panel>
       </Section>
 
+      <Section>
+        <Panel title="Feedback" hint="Beta">
+          <p className="mb-4 text-sm text-muted-foreground">
+            What would make LamaOS worth opening every day? We read everything during beta.
+          </p>
+          <FeedbackForm source="settings" compact />
+        </Panel>
+      </Section>
+
       <p className="pb-16 text-center text-xs text-muted-foreground">
         <Link to="/privacy" className="transition hover:text-foreground">
           Privacy policy
+        </Link>
+        {" · "}
+        <Link to="/feedback" className="transition hover:text-foreground">
+          Feedback
         </Link>
       </p>
     </div>

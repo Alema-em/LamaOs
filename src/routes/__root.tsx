@@ -142,7 +142,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const AUTH_PUBLIC_PATHS = new Set(["/auth", "/reset-password", "/privacy"]);
+const AUTH_PUBLIC_PATHS = new Set(["/auth", "/reset-password", "/privacy", "/feedback"]);
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

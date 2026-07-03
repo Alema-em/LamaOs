@@ -20,6 +20,7 @@ import { Route as InternshipsRouteImport } from './routes/internships'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as GoalsRouteImport } from './routes/goals'
 import { Route as FitnessRouteImport } from './routes/fitness'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DsaRouteImport } from './routes/dsa'
 import { Route as CareerRouteImport } from './routes/career'
 import { Route as BrandforgeRouteImport } from './routes/brandforge'
@@ -83,6 +84,11 @@ const FitnessRoute = FitnessRouteImport.update({
   path: '/fitness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DsaRoute = DsaRouteImport.update({
   id: '/dsa',
   path: '/dsa',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/brandforge': typeof BrandforgeRoute
   '/career': typeof CareerRoute
   '/dsa': typeof DsaRoute
+  '/feedback': typeof FeedbackRoute
   '/fitness': typeof FitnessRoute
   '/goals': typeof GoalsRoute
   '/history': typeof HistoryRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/brandforge': typeof BrandforgeRoute
   '/career': typeof CareerRoute
   '/dsa': typeof DsaRoute
+  '/feedback': typeof FeedbackRoute
   '/fitness': typeof FitnessRoute
   '/goals': typeof GoalsRoute
   '/history': typeof HistoryRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/brandforge': typeof BrandforgeRoute
   '/career': typeof CareerRoute
   '/dsa': typeof DsaRoute
+  '/feedback': typeof FeedbackRoute
   '/fitness': typeof FitnessRoute
   '/goals': typeof GoalsRoute
   '/history': typeof HistoryRoute
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/brandforge'
     | '/career'
     | '/dsa'
+    | '/feedback'
     | '/fitness'
     | '/goals'
     | '/history'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/brandforge'
     | '/career'
     | '/dsa'
+    | '/feedback'
     | '/fitness'
     | '/goals'
     | '/history'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/brandforge'
     | '/career'
     | '/dsa'
+    | '/feedback'
     | '/fitness'
     | '/goals'
     | '/history'
@@ -251,6 +263,7 @@ export interface RootRouteChildren {
   BrandforgeRoute: typeof BrandforgeRoute
   CareerRoute: typeof CareerRoute
   DsaRoute: typeof DsaRoute
+  FeedbackRoute: typeof FeedbackRoute
   FitnessRoute: typeof FitnessRoute
   GoalsRoute: typeof GoalsRoute
   HistoryRoute: typeof HistoryRoute
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FitnessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dsa': {
       id: '/dsa'
       path: '/dsa'
@@ -403,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrandforgeRoute: BrandforgeRoute,
   CareerRoute: CareerRoute,
   DsaRoute: DsaRoute,
+  FeedbackRoute: FeedbackRoute,
   FitnessRoute: FitnessRoute,
   GoalsRoute: GoalsRoute,
   HistoryRoute: HistoryRoute,

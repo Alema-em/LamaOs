@@ -560,6 +560,9 @@ export function LandingPage() {
             <Link to="/privacy" className="transition hover:text-foreground">
               Privacy
             </Link>
+            <Link to="/feedback" className="transition hover:text-foreground">
+              Feedback
+            </Link>
             <Link to="/auth" className="transition hover:text-foreground">
               Sign in
             </Link>
