@@ -282,7 +282,10 @@ function AuthPage() {
         <p className="mt-6 text-center text-[11px] text-muted-foreground">
           {HOSTED_FREE_BETA
             ? "Free during beta. Your data is private and synced to LamaOS."
-            : "Your data is stored privately. Only you can read it."}
+            : "Your data is stored privately. Only you can read it."}{" "}
+          <Link to="/privacy" className="underline-offset-4 hover:underline">
+            Privacy
+          </Link>
         </p>
       </div>
     </div>

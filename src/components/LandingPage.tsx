@@ -557,6 +557,9 @@ export function LandingPage() {
           <span>LamaOS — hosted life OS for builders</span>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <span>Free beta · Private · Synced</span>
+            <Link to="/privacy" className="transition hover:text-foreground">
+              Privacy
+            </Link>
             <Link to="/auth" className="transition hover:text-foreground">
               Sign in
             </Link>

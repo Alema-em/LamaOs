@@ -1,3 +1,4 @@
+import { signInDemoAccount } from "@/lib/api/demo.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const DEMO_SEED_VERSION = 1;
@@ -7,6 +8,7 @@ export const PREVIEW_CHANGED_EVENT = "lamaos-demo-preview-changed";
 
 export type DemoEntryMode = "auth" | "preview";
 
+/** Public demo email for UI checks — not a secret. Must match server DEMO_EMAIL. */
 export function getDemoEmail(): string | undefined {
   const email = import.meta.env.VITE_DEMO_EMAIL?.trim();
   return email || undefined;
@@ -16,11 +18,6 @@ export function isDemoEmail(email: string | null | undefined): boolean {
   const demo = getDemoEmail();
   if (!demo || !email) return false;
   return email.toLowerCase() === demo.toLowerCase();
-}
-
-export function isDemoConfigured(): boolean {
-  const password = import.meta.env.VITE_DEMO_PASSWORD as string | undefined;
-  return Boolean(getDemoEmail() && password && password.length >= 6);
 }
 
 export function isLocalDemoPreview(): boolean {
@@ -45,28 +42,19 @@ export function exitLocalDemoPreview(): void {
   window.dispatchEvent(new Event(PREVIEW_CHANGED_EVENT));
 }
 
-async function signInAsDemoAccount(): Promise<boolean> {
-  const email = getDemoEmail();
-  const password = import.meta.env.VITE_DEMO_PASSWORD as string | undefined;
-  if (!email || !password || password.length < 6) return false;
-
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-  if (!signInError) return true;
-
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-  if (signUpError) return false;
-
-  if (signUpData.session) return true;
-
-  const { error: retryError } = await supabase.auth.signInWithPassword({ email, password });
-  return !retryError;
-}
-
-/** Try cloud demo login; fall back to browser-only preview when auth is blocked. */
+/** Try cloud demo via server-side auth; fall back to browser-only preview. */
 export async function startDemo(): Promise<DemoEntryMode> {
-  if (isDemoConfigured()) {
-    const signedIn = await signInAsDemoAccount();
-    if (signedIn) return "auth";
+  try {
+    const result = await signInDemoAccount();
+    if (result.ok) {
+      const { error } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+      if (!error) return "auth";
+    }
+  } catch (e) {
+    console.warn("[demo] cloud sign-in unavailable", e);
   }
 
   enterLocalDemoPreview();
@@ -75,6 +63,5 @@ export async function startDemo(): Promise<DemoEntryMode> {
 
 /** @deprecated Use startDemo() */
 export async function signInAsDemo(): Promise<void> {
-  const mode = await startDemo();
-  if (mode === "preview") return;
+  await startDemo();
 }

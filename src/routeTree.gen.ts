@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MissionRouteImport } from './routes/mission'
 import { Route as JournalRouteImport } from './routes/journal'
@@ -40,6 +41,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/journal': typeof JournalRoute
   '/mission': typeof MissionRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/mission'
     | '/onboarding'
+    | '/privacy'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/mission'
     | '/onboarding'
+    | '/privacy'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/mission'
     | '/onboarding'
+    | '/privacy'
     | '/projects'
     | '/reset-password'
     | '/settings'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   JournalRoute: typeof JournalRoute
   MissionRoute: typeof MissionRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProjectsRoute: typeof ProjectsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   JournalRoute: JournalRoute,
   MissionRoute: MissionRoute,
   OnboardingRoute: OnboardingRoute,
+  PrivacyRoute: PrivacyRoute,
   ProjectsRoute: ProjectsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,

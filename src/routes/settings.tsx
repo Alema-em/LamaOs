@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useGame, type DashboardPrefs } from "@/hooks/use-game";
 import { isDemoEmail } from "@/lib/demo-auth";
@@ -269,6 +269,12 @@ function SettingsPage() {
           {importMsg && <div className="mt-3 text-xs text-muted-foreground">{importMsg}</div>}
         </Panel>
       </Section>
+
+      <p className="pb-16 text-center text-xs text-muted-foreground">
+        <Link to="/privacy" className="transition hover:text-foreground">
+          Privacy policy
+        </Link>
+      </p>
     </div>
   );
 }
