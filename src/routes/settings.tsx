@@ -7,6 +7,7 @@ import { MODULE_META } from "@/lib/modules";
 import { APP_TEMPLATES, type AppTemplateId } from "@/lib/templates";
 import { PageHeader, Section, Panel } from "@/components/ui-kit";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { WeightTargetsEditor } from "@/components/WeightTargetsEditor";
 import { Download, Upload, RotateCcw, Sun, Moon, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,8 +17,19 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { state, setProfile, setPrefs, toggleTheme, setTemplate, exportJson, importJson, reset, resetDemoState, previewMode } =
-    useGame();
+  const {
+    state,
+    setProfile,
+    setPrefs,
+    toggleTheme,
+    setTemplate,
+    setFitnessTargets,
+    exportJson,
+    importJson,
+    reset,
+    resetDemoState,
+    previewMode,
+  } = useGame();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const [demoUser, setDemoUser] = useState(false);
@@ -154,6 +166,17 @@ function SettingsPage() {
               );
             })}
           </div>
+        </Panel>
+      </Section>
+
+      <Section>
+        <Panel title="Weight targets" hint="Fitness">
+          <WeightTargetsEditor
+            start={state.fitness.start}
+            current={state.fitness.current}
+            goal={state.fitness.goal}
+            onSave={setFitnessTargets}
+          />
         </Panel>
       </Section>
 

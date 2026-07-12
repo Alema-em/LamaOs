@@ -436,18 +436,6 @@ function Fitness() {
         </Panel>
       </Section>
 
-      {/* Weight journey targets */}
-      <Section>
-        <Panel title="Weight targets" hint="Start · current · goal">
-          <WeightTargetsEditor
-            start={f.start}
-            current={f.current}
-            goal={f.goal}
-            onSave={setFitnessTargets}
-          />
-        </Panel>
-      </Section>
-
       {/* Targets */}
       <Section className="grid gap-6 lg:grid-cols-2">
         <Panel title="Daily targets" hint="Tune to you">
@@ -806,74 +794,6 @@ function ScoreRow({ label, value, sub }: { label: string; value: number; sub: st
         />
       </div>
       <div className="mt-1 text-[11px] text-muted-foreground">{sub}</div>
-    </div>
-  );
-}
-
-function WeightTargetsEditor({
-  start,
-  current,
-  goal,
-  onSave,
-}: {
-  start: number;
-  current: number;
-  goal: number;
-  onSave: (start: number, current: number, goal: number) => void;
-}) {
-  const [startVal, setStartVal] = useState<number | "">(start);
-  const [currentVal, setCurrentVal] = useState<number | "">(current);
-  const [goalVal, setGoalVal] = useState<number | "">(goal);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    setStartVal(start);
-    setCurrentVal(current);
-    setGoalVal(goal);
-  }, [start, current, goal]);
-
-  const valid =
-    typeof startVal === "number" &&
-    typeof currentVal === "number" &&
-    typeof goalVal === "number" &&
-    startVal > 0 &&
-    currentVal > 0 &&
-    goalVal > 0;
-
-  const dirty =
-    startVal !== start || currentVal !== current || goalVal !== goal;
-
-  return (
-    <div>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Change your starting weight, current weight or goal. Journey progress and achievements use
-        these numbers.
-      </p>
-      <div className="grid gap-3 md:grid-cols-3">
-        <Field label="Start (kg)" value={startVal} onChange={setStartVal} placeholder="e.g. 75" />
-        <Field
-          label="Current (kg)"
-          value={currentVal}
-          onChange={setCurrentVal}
-          placeholder="e.g. 72"
-        />
-        <Field label="Goal (kg)" value={goalVal} onChange={setGoalVal} placeholder="e.g. 65" />
-      </div>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          disabled={!valid || !dirty}
-          onClick={() => {
-            onSave(startVal as number, currentVal as number, goalVal as number);
-            setSaved(true);
-            window.setTimeout(() => setSaved(false), 2000);
-          }}
-          className="rounded-md bg-foreground px-4 py-2 text-sm text-background transition hover:opacity-90 disabled:opacity-40"
-        >
-          Save weight targets
-        </button>
-        {saved && <span className="text-xs text-muted-foreground">Saved</span>}
-      </div>
     </div>
   );
 }
