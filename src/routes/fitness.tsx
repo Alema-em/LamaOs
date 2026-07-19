@@ -37,6 +37,8 @@ import {
   Flame,
   Beef,
   Check,
+  ChevronLeft,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 
@@ -694,50 +696,161 @@ function StepHistoryCalendar({
   selectedDate: string;
   onSelectDate: (date: string) => void;
 }) {
+  const todayKey = TODAY();
+  const [viewYear, setViewYear] = useState(() => new Date().getUTCFullYear());
+  const [viewMonth, setViewMonth] = useState(() => new Date().getUTCMonth()); // 0-11
+
+  // Keep viewed month in sync when user taps a day in another month
+  useEffect(() => {
+    if (!selectedDate || selectedDate.length < 10) return;
+    const y = +selectedDate.slice(0, 4);
+    const m = +selectedDate.slice(5, 7) - 1;
+    if (!Number.isNaN(y) && !Number.isNaN(m)) {
+      setViewYear(y);
+      setViewMonth(m);
+    }
+  }, [selectedDate]);
+
+  const monthLabel = useMemo(() => {
+    return new Date(Date.UTC(viewYear, viewMonth, 1)).toLocaleString(undefined, {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  }, [viewYear, viewMonth]);
+
   const days = useMemo(() => {
     const byDate = new Map(daily.map((d) => [d.date, d]));
-    return Array.from({ length: 28 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (27 - i));
-      const key = d.toISOString().slice(0, 10);
+    const first = new Date(Date.UTC(viewYear, viewMonth, 1));
+    const daysInMonth = new Date(Date.UTC(viewYear, viewMonth + 1, 0)).getUTCDate();
+    const startPad = first.getUTCDay(); // 0 = Sunday
+
+    const cells: {
+      key: string;
+      dayNum: number;
+      steps?: number;
+      pct: number;
+      complete: boolean;
+      hasData: boolean;
+      inMonth: boolean;
+      isFuture: boolean;
+    }[] = [];
+
+    for (let i = 0; i < startPad; i++) {
+      cells.push({
+        key: `pad-${i}`,
+        dayNum: 0,
+        pct: 0,
+        complete: false,
+        hasData: false,
+        inMonth: false,
+        isFuture: false,
+      });
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const log = byDate.get(key);
       const steps = typeof log?.steps === "number" ? log.steps : undefined;
       const pct =
         steps !== undefined && stepTarget > 0 ? clampPercent((steps / stepTarget) * 100) : 0;
       const complete = steps !== undefined && stepTarget > 0 && steps >= stepTarget;
       const hasData = steps !== undefined;
-      return { key, steps, pct, complete, hasData };
-    });
-  }, [daily, stepTarget]);
+      cells.push({
+        key,
+        dayNum: day,
+        steps,
+        pct,
+        complete,
+        hasData,
+        inMonth: true,
+        isFuture: key > todayKey,
+      });
+    }
+
+    return cells;
+  }, [daily, stepTarget, viewYear, viewMonth, todayKey]);
+
+  const canGoNext = useMemo(() => {
+    const now = new Date();
+    return (
+      viewYear < now.getUTCFullYear() ||
+      (viewYear === now.getUTCFullYear() && viewMonth < now.getUTCMonth())
+    );
+  }, [viewYear, viewMonth]);
+
+  function shiftMonth(delta: number) {
+    const d = new Date(Date.UTC(viewYear, viewMonth + delta, 1));
+    setViewYear(d.getUTCFullYear());
+    setViewMonth(d.getUTCMonth());
+  }
 
   return (
     <div className="mt-6 border-t border-border pt-5">
-      <div className="mb-3 flex items-baseline justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           Step history
         </div>
-        <div className="text-[10px] text-muted-foreground">Last 28 days · tap a day</div>
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day) => (
+        <div className="flex items-center gap-1">
           <button
-            key={day.key}
             type="button"
-            title={
-              day.hasData
-                ? `${day.key}: ${day.steps?.toLocaleString()} steps`
-                : `${day.key}: no data`
-            }
-            onClick={() => onSelectDate(day.key)}
-            className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-2 text-[9px] transition hover:bg-foreground/[0.03] ${
-              selectedDate === day.key ? "border-foreground bg-foreground/[0.04]" : "border-border"
-            }`}
+            onClick={() => shiftMonth(-1)}
+            aria-label="Previous month"
+            className="rounded-md border border-border p-1 text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground"
           >
-            <MiniStepRing pct={day.pct} complete={day.complete} hasData={day.hasData} />
-            <span className="text-muted-foreground">{day.key.slice(8)}</span>
+            <ChevronLeft className="h-3.5 w-3.5" />
           </button>
+          <div className="min-w-[8.5rem] text-center text-[11px] font-medium tabular-nums">
+            {monthLabel}
+          </div>
+          <button
+            type="button"
+            onClick={() => shiftMonth(1)}
+            disabled={!canGoNext}
+            aria-label="Next month"
+            className="rounded-md border border-border p-1 text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground disabled:opacity-30"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+          <div key={d}>{d}</div>
         ))}
       </div>
+
+      <div className="grid grid-cols-7 gap-1.5">
+        {days.map((day) =>
+          !day.inMonth ? (
+            <div key={day.key} className="aspect-square" aria-hidden />
+          ) : (
+            <button
+              key={day.key}
+              type="button"
+              disabled={day.isFuture}
+              title={
+                day.hasData
+                  ? `${day.key}: ${day.steps?.toLocaleString()} steps`
+                  : day.isFuture
+                    ? `${day.key}: future`
+                    : `${day.key}: no data`
+              }
+              onClick={() => onSelectDate(day.key)}
+              className={`flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border px-0.5 py-1 text-[9px] transition disabled:cursor-default disabled:opacity-40 ${
+                selectedDate === day.key
+                  ? "border-foreground bg-foreground/[0.04]"
+                  : "border-border hover:bg-foreground/[0.03]"
+              }`}
+            >
+              <MiniStepRing pct={day.pct} complete={day.complete} hasData={day.hasData} />
+              <span className="text-muted-foreground">{day.dayNum}</span>
+            </button>
+          ),
+        )}
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">Tap a day to edit its checklist</p>
     </div>
   );
 }
